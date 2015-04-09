@@ -859,9 +859,9 @@ int   SFileIsPatchedArchive(void * hMpq);
 /* Reading from MPQ file */
 int   SFileHasFile(void * hMpq, const char * szFileName);
 int   SFileOpenFileEx(void * hMpq, const char * szFileName, uint32_t dwSearchScope, void * * phFile);
-uint32_t  SFileGetFileSize(void * hFile, uint32_t * pdwFileSizeHigh);
-uint32_t  SFileSetFilePointer(void * hFile, int lFilePos, int * plFilePosHigh, uint32_t dwMoveMethod);
-int   SFileReadFile(void * hFile, void * lpBuffer, uint32_t dwToRead, uint32_t * pdwRead);
+size_t  SFileGetFileSize(void * hFile, uint32_t * pdwFileSizeHigh);
+size_t  SFileSetFilePointer(void * hFile, off_t lFilePos, int * plFilePosHigh, uint32_t dwMoveMethod);
+int   SFileReadFile(void * hFile, void * lpBuffer, size_t dwToRead, size_t * pdwRead);
 int   SFileCloseFile(void * hFile);
 
 /* Retrieving info about a file in the archive */
@@ -909,8 +909,8 @@ int    SFileEnumLocales(void * hMpq, const char * szFileName, uint32_t * plcLoca
  * Support for adding files to the MPQ
  */
 
-int   SFileCreateFile(void * hMpq, const char * szArchivedName, uint64_t FileTime, uint32_t dwFileSize, uint32_t lcLocale, uint32_t dwFlags, void ** phFile);
-int   SFileWriteFile(void * hFile, const void * pvData, uint32_t dwSize, uint32_t dwCompression);
+int   SFileCreateFile(void * hMpq, const char * szArchivedName, uint64_t FileTime, size_t dwFileSize, uint32_t lcLocale, uint32_t dwFlags, void ** phFile);
+int   SFileWriteFile(void * hFile, const void * pvData, size_t dwSize, uint32_t dwCompression);
 int   SFileFinishFile(void * hFile);
 
 int   SFileAddFileEx(void * hMpq, const char * szFileName, const char * szArchivedName, uint32_t dwFlags, uint32_t dwCompression, uint32_t dwCompressionNext);

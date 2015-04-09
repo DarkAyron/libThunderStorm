@@ -662,7 +662,7 @@ static int ReadMpqFileLocalFile(TMPQFile * hf, void * pvBuffer, uint32_t dwFileP
  * SFileReadFile
  */
 
-int EXPORT_SYMBOL SFileReadFile(void * hFile, void * pvBuffer, uint32_t dwToRead, uint32_t * pdwRead)
+int EXPORT_SYMBOL SFileReadFile(void * hFile, void * pvBuffer, size_t dwToRead, size_t * pdwRead)
 {
     TMPQFile * hf = (TMPQFile *)hFile;
     uint32_t dwBytesRead = 0;                      /* Number of bytes read */
@@ -748,7 +748,7 @@ int EXPORT_SYMBOL SFileReadFile(void * hFile, void * pvBuffer, uint32_t dwToRead
  * SFileGetFileSize
  */
 
-uint32_t EXPORT_SYMBOL SFileGetFileSize(void * hFile, uint32_t * pdwFileSizeHigh)
+size_t EXPORT_SYMBOL SFileGetFileSize(void * hFile, uint32_t * pdwFileSizeHigh)
 {
     uint64_t FileSize;
     TMPQFile * hf = (TMPQFile *)hFile;
@@ -788,14 +788,14 @@ uint32_t EXPORT_SYMBOL SFileGetFileSize(void * hFile, uint32_t * pdwFileSizeHigh
         /* If opened from archive, return file size */
         if(pdwFileSizeHigh != NULL)
             *pdwFileSizeHigh = (uint32_t)(FileSize >> 32);
-        return (uint32_t)FileSize;
+        return (size_t)FileSize;
     }
 
     SetLastError(ERROR_INVALID_HANDLE);
     return SFILE_INVALID_SIZE;
 }
 
-uint32_t EXPORT_SYMBOL SFileSetFilePointer(void * hFile, int lFilePos, int * plFilePosHigh, uint32_t dwMoveMethod)
+size_t EXPORT_SYMBOL SFileSetFilePointer(void * hFile, off_t lFilePos, int * plFilePosHigh, uint32_t dwMoveMethod)
 {
     TMPQFile * hf = (TMPQFile *)hFile;
     uint64_t FilePosition;
@@ -849,7 +849,10 @@ uint32_t EXPORT_SYMBOL SFileSetFilePointer(void * hFile, int lFilePos, int * plF
         dwFilePosHi = *plFilePosHigh;
     else
         dwFilePosHi = (lFilePos & 0x80000000) ? 0xFFFFFFFF : 0;
-    MoveOffset = MAKE_OFFSET64(dwFilePosHi, lFilePos);
+    if (sizeof(off_t) == 8)
+        MoveOffset = (uint64_t)lFilePos;
+    else
+        MoveOffset = MAKE_OFFSET64(dwFilePosHi, lFilePos);
 
     /* Now calculate the new file pointer */
     /* Do not allow the file pointer to overflow */
@@ -865,7 +868,7 @@ uint32_t EXPORT_SYMBOL SFileSetFilePointer(void * hFile, int lFilePos, int * plF
         /* Return the new file position */
         if(plFilePosHigh != NULL)
             *plFilePosHigh = (int)(FilePosition >> 32);
-        return (uint32_t)FilePosition;
+        return (size_t)FilePosition;
     }
     else
     {
@@ -883,7 +886,7 @@ uint32_t EXPORT_SYMBOL SFileSetFilePointer(void * hFile, int lFilePos, int * plF
         /* Return the new file position */
         if(plFilePosHigh != NULL)
             *plFilePosHigh = 0;
-        return (uint32_t)FilePosition;
+        return (size_t)FilePosition;
     }
 }
 

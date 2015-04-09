@@ -16,6 +16,7 @@
 ##############################################################
 # updated on Monday 3, 2010 by Christopher Chedeau aka vjeux #
 # updated on April 24, 2010 by Ivan Komissarov aka Nevermore #
+# updated on April 09, 2015 by Ayron                         #
 ##############################################################
 
 C++ = g++
@@ -24,14 +25,16 @@ AS = as
 AR = ar
 DFLAGS = -D_7ZIP_ST
 OFLAGS =
-LFLAGS = -m32
+#LFLAGS = -m32
+LFLAGS = -m64
 CFLAGS = -fPIC -std=gnu89 -g -fvisibility=internal
 WFLAGS = -Wall -Werror=implicit-int -Werror=implicit-function-declaration -Wno-unused-variable -Wno-unused-function -Werror
 CFLAGS += $(OFLAGS) $(DFLAGS) $(WFLAGS)
 
-ARCH = -m32
-BF = elf32-i386
-#BF = elf64-x86-64
+#ARCH = -m32
+ARCH = -m64
+#BF = elf32-i386
+BF = elf64-x86-64
 
 OBJC = src/FileStream.o \
 	src/SBaseCommon.o \

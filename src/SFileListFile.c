@@ -61,8 +61,8 @@ static struct TListFileCache * CreateListFileCache(void * hListFile, const char 
 {
     struct TListFileCache * pCache = NULL;
     size_t nMaskLength = 0;
-    uint32_t dwBytesRead = 0;
-    uint32_t dwFileSize;
+    size_t dwBytesRead = 0;
+    size_t dwFileSize;
 
     /* Get the amount of bytes that need to be allocated */
     dwFileSize = SFileGetFileSize(hListFile, NULL);
@@ -112,8 +112,8 @@ static struct TListFileCache * CreateListFileCache(void * hListFile, const char 
 /* that has been loaded into the cache. */
 static uint32_t ReloadListFileCache(struct TListFileCache * pCache)
 {
-    uint32_t dwBytesToRead;
-    uint32_t dwBytesRead = 0;
+    size_t dwBytesToRead;
+    size_t dwBytesRead = 0;
 
     /* Only do something if the cache is empty */
     if(pCache->pPos >= pCache->pEnd)

@@ -915,8 +915,8 @@ static int CreatePseudoFileName(void * hFile, TFileEntry * pFileEntry, char * sz
 {
     TMPQFile * hf = (TMPQFile *)hFile;  /* MPQ File handle */
     uint32_t FirstBytes[2] = {0, 0};       /* The first 4 bytes of the file */
-    uint32_t dwBytesRead = 0;
-    uint32_t dwFilePos;                    /* Saved file position */
+    size_t dwBytesRead = 0;
+    size_t dwFilePos;                    /* Saved file position */
 
     /* Read the first 2 uint32_ts bytes from the file */
     dwFilePos = SFileSetFilePointer(hFile, 0, NULL, SEEK_CUR);   

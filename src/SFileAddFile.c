@@ -702,13 +702,19 @@ int EXPORT_SYMBOL SFileCreateFile(
     void * hMpq,
     const char * szArchivedName,
     uint64_t FileTime,
-    uint32_t dwFileSize,
+    size_t dwFileSize,
     uint32_t lcLocale,
     uint32_t dwFlags,
     void ** phFile)
 {
     TMPQArchive * ha = (TMPQArchive *)hMpq;
     int nError = ERROR_SUCCESS;
+    uint32_t uiFileSize = dwFileSize;
+    
+    if(uiFileSize > dwFileSize)
+    {
+        nError = EFBIG;
+    }
 
     /* Check valid parameters */
     if(!IsValidMpqHandle(hMpq))
@@ -746,7 +752,7 @@ int EXPORT_SYMBOL SFileCreateFile(
 
     /* Initiate the add file operation */
     if(nError == ERROR_SUCCESS)
-        nError = SFileAddFile_Init(ha, szArchivedName, FileTime, dwFileSize, lcLocale, dwFlags, (TMPQFile **)phFile);
+        nError = SFileAddFile_Init(ha, szArchivedName, FileTime, uiFileSize, lcLocale, dwFlags, (TMPQFile **)phFile);
 
     /* Deal with the errors */
     if(nError != ERROR_SUCCESS)
@@ -757,7 +763,7 @@ int EXPORT_SYMBOL SFileCreateFile(
 int EXPORT_SYMBOL SFileWriteFile(
     void * hFile,
     const void * pvData,
-    uint32_t dwSize,
+    size_t dwSize,
     uint32_t dwCompression)
 {
     TMPQFile * hf = (TMPQFile *)hFile;

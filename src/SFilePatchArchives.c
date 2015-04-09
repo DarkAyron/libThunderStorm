@@ -124,9 +124,9 @@ static int LoadFilePatch_BSD0(TMPQFile * hf, TPatchHeader * pPatchHeader)
 {
     unsigned char * pbDecompressed = NULL;
     unsigned char * pbCompressed = NULL;
-    uint32_t cbDecompressed = 0;
-    uint32_t cbCompressed = 0;
-    uint32_t dwBytesRead = 0;
+    size_t cbDecompressed = 0;
+    size_t cbCompressed = 0;
+    size_t dwBytesRead = 0;
     int nError = ERROR_SUCCESS;
 
     /* Allocate space for compressed data */
@@ -288,7 +288,7 @@ static int ApplyFilePatch_BSD0(
 static int LoadFilePatch(TMPQFile * hf)
 {
     TPatchHeader PatchHeader;
-    uint32_t dwBytesRead;
+    size_t dwBytesRead;
     int nError = ERROR_SUCCESS;
 
     /* Read the patch header */
@@ -473,7 +473,7 @@ static int IsMatchingPatchFile(
 {
     TPatchHeader PatchHeader = {0};
     void * hFile = NULL;
-    uint32_t dwTransferred = 0;
+    size_t dwTransferred = 0;
     int bResult = 0;
 
     /* Open the file and load the patch header */

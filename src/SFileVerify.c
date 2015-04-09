@@ -629,7 +629,7 @@ static uint32_t VerifyFile(
         /* Go through entire file and update both CRC32 and MD5 */
         for(;;)
         {
-            uint32_t dwBytesRead = 0;
+            size_t dwBytesRead = 0;
 
             /* Read data from file */
             SFileReadFile(hFile, Buffer, sizeof(Buffer), &dwBytesRead);

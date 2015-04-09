@@ -369,8 +369,8 @@ int SAttrLoadAttributes(TMPQArchive * ha)
 {
     void * hFile = NULL;
     unsigned char * pbAttrFile;
-    uint32_t dwBytesRead;
-    uint32_t cbAttrFile = 0;
+    size_t dwBytesRead;
+    size_t cbAttrFile = 0;
     int nError = ERROR_FILE_CORRUPT;
 
     /* File table must be initialized */
@@ -520,8 +520,8 @@ int EXPORT_SYMBOL SFileUpdateFileAttributes(void * hMpq, const char * szFileName
     TMPQFile * hf;
     uint8_t Buffer[0x1000];
     void * hFile = NULL;
-    uint32_t dwTotalBytes = 0;
-    uint32_t dwBytesRead;
+    size_t dwTotalBytes = 0;
+    size_t dwBytesRead;
     uint32_t dwCrc32;
 
     /* Verify the parameters */

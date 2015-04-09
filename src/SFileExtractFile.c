@@ -37,7 +37,7 @@ int EXPORT_SYMBOL SFileExtractFile(void * hMpq, const char * szToExtract, const 
     while(nError == ERROR_SUCCESS)
     {
         char  szBuffer[0x1000];
-        uint32_t dwTransferred = 0;
+        size_t dwTransferred = 0;
 
         /* dwTransferred is only set to nonzero if something has been read. */
         /* nError can be ERROR_SUCCESS or ERROR_HANDLE_EOF */
