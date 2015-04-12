@@ -28,7 +28,7 @@ OFLAGS =
 #LFLAGS = -m32
 LFLAGS = -m64
 CFLAGS = -fPIC -std=gnu89 -g -fvisibility=internal
-WFLAGS = -Wall -Werror=implicit-int -Werror=implicit-function-declaration -Wno-unused-variable -Wno-unused-function -Werror
+WFLAGS = -Wall -Werror=implicit-int -Werror=implicit-function-declaration -Wno-unused-variable -Wno-unused-function -Wno-unused-but-set-variable -Werror
 CFLAGS += $(OFLAGS) $(DFLAGS) $(WFLAGS)
 
 #ARCH = -m32
