@@ -201,7 +201,14 @@ static int WriteDataToMpqFile(
                     /* We have to calculate sector CRC, if enabled */
                     if(hf->SectorChksums != NULL)
                         hf->SectorChksums[dwSectorIndex] = adler32(0, pbCompressed, nOutBuffer);
-                }                 
+                }
+
+                /* Pad the sector if, necessary */
+                if(dwBytesInSector % 16 > 0)
+                {
+                    memset(pbToWrite + dwBytesInSector, 0, 16 - dwBytesInSector % 16);
+                    dwBytesInSector += 16 - dwBytesInSector % 16;
+		}
 
                 /* Encrypt the sector, if necessary */
                 if(pFileEntry->dwFlags & MPQ_FILE_ENCRYPTED)
