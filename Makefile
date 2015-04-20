@@ -258,9 +258,9 @@ OBJC_PK = src/pklib/implode.o \
 	src/pklib/crc32.o \
 	src/pklib/explode.o \
 
-OBJC_ZLIB = src/zlib/crc32.o \
+OBJC_ZLIB = src/zlib/crc32_zlib.o \
 	src/zlib/trees.o \
-	src/zlib/compress.o \
+	src/zlib/compress_zlib.o \
 	src/zlib/adler32.o \
 	src/zlib/inftrees.o \
 	src/zlib/inffast.o \
