@@ -87,6 +87,7 @@
 #define MPQ_FLAG_SIGNATURE_INVALID  0x00000100  /* If set, it means that the (signature) has been invalidated */
 #define MPQ_FLAG_SAVING_TABLES      0x00000200  /* If set, we are saving MPQ internal files and MPQ tables */
 #define MPQ_FLAG_PATCH              0x00000400  /* If set, this MPQ is a patch archive */
+#define MPQ_FLAG_WAR3_MAP           0x00000800  /* If set, this MPQ is a map for Warcraft III */
 
 /* Values for TMPQArchive::dwSubType */
 #define MPQ_SUBTYPE_MPQ             0x00000000  /* The file is a MPQ file (Blizzard games) */
@@ -331,7 +332,7 @@ typedef enum _SFileInfoClass
     SFileMpqNumberOfFiles,                  /* Number of files (uint32_t) */
     SFileMpqRawChunkSize,                   /* Size of the raw data chunk for MD5 */
     SFileMpqStreamFlags,                    /* Stream flags (uint32_t) */
-    SFileMpqIsReadOnly,                     /* Nonzero if the MPQ is read only (uint32_t) */
+    SFileMpqFlags,                          /* Nonzero if the MPQ is read only (uint32_t) */
 
     /* Info classes for files */
     SFileInfoPatchChain,                    /* Chain of patches where the file is (char []) */
@@ -724,6 +725,19 @@ typedef struct _TMPQNamePrefix
     size_t nLength;                             /* Length of this patch prefix. Can be 0 */
     char szPatchPrefix[1];                      /* Patch name prefix (variable length). If not empty, it always starts with backslash. */
 } TMPQNamePrefix;
+
+/* Structure for name cache */
+typedef struct _TMPQNameCache
+{
+    uint32_t FirstNameOffset;                   /* Offset of the first name in the name list (in bytes) */
+    uint32_t FreeSpaceOffset;                   /* Offset of the first free byte in the name cache (in bytes) */
+    uint32_t TotalCacheSize;                    /* Size, in bytes, of the cache. Includes wildcard */
+    uint32_t SearchOffset;                      /* Used by SListFileFindFirstFile */
+
+    /* Followed by search mask (ASCIIZ, '\0' if none) */
+    /* Followed by name cache (ANSI multistring) */
+
+} TMPQNameCache;
 
 /* Structure for SFileFindFirstFile and SFileFindNextFile */
 typedef struct _SFILE_FIND_DATA

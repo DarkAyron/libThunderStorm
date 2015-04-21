@@ -606,11 +606,11 @@ int EXPORT_SYMBOL SFileGetFileInfo(
             }
             break;
 
-        case SFileMpqIsReadOnly:
+        case SFileMpqFlags:
             ha = IsValidMpqHandle(hMpqOrFile);
             if(ha != NULL)
             {
-                dwInt32Value  = (ha->dwFlags & MPQ_FLAG_READ_ONLY) ? 1 : 0;
+                dwInt32Value  = ha->dwFlags;
                 pvSrcFileInfo = &dwInt32Value;
                 cbSrcFileInfo = sizeof(uint32_t);
                 nInfoType = SFILE_INFO_TYPE_DIRECT_POINTER;

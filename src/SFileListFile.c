@@ -18,6 +18,7 @@
  */
 
 #define CACHE_BUFFER_SIZE  0x1000       /* Size of the cache buffer */
+#define MAX_LISTFILE_SIZE  0x04000000   /* Maximum accepted listfile size is about 68 MB */
 
 struct TListFileCache
 {
@@ -573,54 +574,52 @@ void EXPORT_SYMBOL * SListFileFindFirstFile(void * hMpq, const char * szListFile
     }
 
     /* Open the local/internal listfile */
-    if(!SFileOpenFileEx(hMpq, szListFile, dwSearchScope, &hListFile))
-        nError = GetLastError();
-
-    /* Load the listfile to cache */
-    if(nError == ERROR_SUCCESS)
-    {
-        pCache = CreateListFileCache(hListFile, szMask);
-        if(pCache == NULL)
-            nError = ERROR_FILE_CORRUPT;
-    }
-
-    /* Perform file search */
-    if(nError == ERROR_SUCCESS)
+    if(SFileOpenFileEx(hMpq, szListFile, dwSearchScope, &hListFile))
     {
         /* The listfile handle is in the cache now */
         hListFile = NULL;
 
-        /* Iterate through the listfile */
-        for(;;)
+        /* Load the listfile to cache */
+        pCache = CreateListFileCache(hListFile, szMask);
+        if(pCache != NULL)
         {
-            /* Read the (next) line */
-            nLength = ReadListFileLine(pCache, lpFindFileData->cFileName, sizeof(lpFindFileData->cFileName));
-            if(nLength == 0)
+            /* Iterate through the listfile */
+            for(;;)
             {
-                nError = ERROR_NO_MORE_FILES;
-                break;
-            }
+                /* Read the (next) line */
+                nLength = ReadListFileLine(pCache, lpFindFileData->cFileName, sizeof(lpFindFileData->cFileName));
+                if(nLength == 0)
+                {
+                    nError = ERROR_NO_MORE_FILES;
+                    break;
+                }
 
-            /* If some mask entered, check it */
-            if(CheckWildCard(lpFindFileData->cFileName, pCache->szMask))
-                break;                
+                /* If some mask entered, check it */
+                if(CheckWildCard(lpFindFileData->cFileName, pCache->szMask))
+                    break;                
+            }
         }
+        else
+        {
+            SFileCloseFile(hListFile);
+            nError = ERROR_FILE_CORRUPT;
+        }
+    }
+    else
+    {
+        nError = GetLastError();
     }
 
     /* Cleanup & exit */
     if(nError != ERROR_SUCCESS)
     {
-        if(pCache != NULL)
-            FreeListFileCache(pCache);
-        pCache = NULL;
-
         memset(lpFindFileData, 0, sizeof(SFILE_FIND_DATA));
+        FreeListFileCache(pCache);
         SetLastError(nError);
+        pCache = NULL;
     }
 
-    /* Close remaining unowned listfile handle */
-    if(hListFile != NULL)
-        SFileCloseFile(hListFile);
+    /* Return the listfile cache as handle */
     return (void *)pCache;
 }
 
