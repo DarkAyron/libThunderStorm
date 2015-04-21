@@ -295,6 +295,7 @@ LIBS = src/libtomcrypt/libtomcrypt.a \
 	src/bzip2/bzip2.a \
 	src/adpcm/adpcm.o \
 	src/anubis/anubis.o \
+	src/serpent/serpent.o \
 	src/huffman/huff.o \
 	src/jenkins/lookup3.o \
 	src/sparse/sparse.o

@@ -219,8 +219,12 @@ static int WriteDataToMpqFile(
                     
                     /* Encrypt with anubis, if necessary */
                     if(pFileEntry->dwFlags & MPQ_FILE_ENCRYPT_ANUBIS)
-                         EncryptMpqBlockAnubis(pbToWrite, dwBytesInSector, &(ha->keySchedule));
-               }
+                         EncryptMpqBlockAnubis(pbToWrite, dwBytesInSector, &(ha->keyScheduleAnubis));
+
+                    /* Encrypt with serpent, if necessary */
+                    if(pFileEntry->dwFlags & MPQ_FILE_ENCRYPT_SERPENT)
+                         EncryptMpqBlockSerpent(pbToWrite, dwBytesInSector, &(ha->keyScheduleSerpent));
+                }
 
                 /* Write the file sector */
                 if(!FileStream_Write(ha->pStream, &ByteOffset, pbToWrite, dwBytesInSector))
@@ -351,8 +355,11 @@ static int RecryptFileData(
             /* If necessary, re-encrypt the sector */
             /* Note: Recompression is not necessary here. Unlike encryption, */
             /* the compression does not depend on the position of the file in MPQ. */
+            if(pFileEntry->dwFlags & MPQ_FILE_ENCRYPT_SERPENT)
+                DecryptMpqBlockSerpent(hf->pbFileSector, dwRawDataInSector, &(ha->keyScheduleSerpent));
+
             if(pFileEntry->dwFlags & MPQ_FILE_ENCRYPT_ANUBIS)
-                DecryptMpqBlockAnubis(hf->pbFileSector, dwRawDataInSector, &(ha->keySchedule));
+                DecryptMpqBlockAnubis(hf->pbFileSector, dwRawDataInSector, &(ha->keyScheduleAnubis));
             
             BSWAP_ARRAY32_UNSIGNED(hf->pbFileSector, dwRawDataInSector);
             DecryptMpqBlock(hf->pbFileSector, dwRawDataInSector, dwOldKey + dwSector);
@@ -360,7 +367,10 @@ static int RecryptFileData(
             BSWAP_ARRAY32_UNSIGNED(hf->pbFileSector, dwRawDataInSector);
             
             if(pFileEntry->dwFlags & MPQ_FILE_ENCRYPT_ANUBIS)
-                EncryptMpqBlockAnubis(hf->pbFileSector, dwRawDataInSector, &(ha->keySchedule));
+                EncryptMpqBlockAnubis(hf->pbFileSector, dwRawDataInSector, &(ha->keyScheduleAnubis));
+
+            if(pFileEntry->dwFlags & MPQ_FILE_ENCRYPT_SERPENT)
+                EncryptMpqBlockSerpent(hf->pbFileSector, dwRawDataInSector, &(ha->keyScheduleSerpent));
 
             /* Write the sector back */
             if(!FileStream_Write(ha->pStream, &RawFilePos, hf->pbFileSector, dwRawDataInSector))

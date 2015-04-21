@@ -65,8 +65,11 @@
 /* For HashStringJenkins */
 #include "jenkins/lookup.h"
 
-/* Anubis cypher */
+/* Anubis cipher */
 #include "anubis/anubis.h"
+
+/* Serpent cipher */
+#include "serpent/serpent.h"
 
 /*-----------------------------------------------------------------------------
  * StormLib private defines
@@ -126,7 +129,8 @@ typedef struct _TMPQArchive
     uint64_t      CompactBytesProcessed;       /* Amount of bytes that have been processed during a particular compact call */
     uint64_t      CompactTotalBytes;           /* Total amount of bytes to be compacted */
     void         * pvCompactUserData;           /* User data thats passed to the callback */
-    anubisSchedule_t    keySchedule;            /* Key schedule for anubis encryption */
+    anubisSchedule_t    keyScheduleAnubis;      /* Key schedule for anubis encryption */
+    serpentSchedule_t   keyScheduleSerpent;     /* Key schedule for serpent encryption */
 } TMPQArchive;                                      
 
 /* File handle structure */
@@ -249,6 +253,8 @@ void  EncryptMpqBlock(void * pvDataBlock, uint32_t dwLength, uint32_t dwKey);
 void  DecryptMpqBlock(void * pvDataBlock, uint32_t dwLength, uint32_t dwKey);
 void  EncryptMpqBlockAnubis(void * pvDataBlock, uint32_t dwLength, anubisSchedule_t * keySchedule);
 void  DecryptMpqBlockAnubis(void * pvDataBlock, uint32_t dwLength, anubisSchedule_t * keySchedule);
+void  EncryptMpqBlockSerpent(void * pvDataBlock, uint32_t dwLength, serpentSchedule_t * keySchedule);
+void  DecryptMpqBlockSerpent(void * pvDataBlock, uint32_t dwLength, serpentSchedule_t * keySchedule);
 
 uint32_t DetectFileKeyBySectorSize(uint32_t * EncryptedData, uint32_t dwSectorSize, uint32_t dwSectorOffsLen);
 uint32_t DetectFileKeyByContent(void * pvEncryptedData, uint32_t dwSectorSize, uint32_t dwFileSize);

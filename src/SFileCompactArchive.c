@@ -280,8 +280,11 @@ static int CopyMpqFileSectors(
             /* the compression does not depend on the position of the file in MPQ. */
             if((pFileEntry->dwFlags & MPQ_FILE_ENCRYPTED) && dwFileKey1 != dwFileKey2)
             {
+                if(pFileEntry->dwFlags & MPQ_FILE_ENCRYPT_SERPENT)
+                    DecryptMpqBlockSerpent(hf->pbFileSector, dwRawDataInSector, &(ha->keyScheduleSerpent));
+
                 if(pFileEntry->dwFlags & MPQ_FILE_ENCRYPT_ANUBIS)
-                    DecryptMpqBlockAnubis(hf->pbFileSector, dwRawDataInSector, &(ha->keySchedule));
+                    DecryptMpqBlockAnubis(hf->pbFileSector, dwRawDataInSector, &(ha->keyScheduleAnubis));
                 
                 BSWAP_ARRAY32_UNSIGNED(hf->pbFileSector, dwRawDataInSector);
                 DecryptMpqBlock(hf->pbFileSector, dwRawDataInSector, dwFileKey1 + dwSector);
@@ -289,7 +292,10 @@ static int CopyMpqFileSectors(
                 BSWAP_ARRAY32_UNSIGNED(hf->pbFileSector, dwRawDataInSector);
                 
                 if(pFileEntry->dwFlags & MPQ_FILE_ENCRYPT_ANUBIS)
-                    EncryptMpqBlockAnubis(hf->pbFileSector, dwRawDataInSector, &(ha->keySchedule));
+                    EncryptMpqBlockAnubis(hf->pbFileSector, dwRawDataInSector, &(ha->keyScheduleAnubis));
+
+                if(pFileEntry->dwFlags & MPQ_FILE_ENCRYPT_SERPENT)
+                    EncryptMpqBlockSerpent(hf->pbFileSector, dwRawDataInSector, &(ha->keyScheduleSerpent));
             }
 
             /* Now write the sector back to the file */

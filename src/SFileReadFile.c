@@ -118,9 +118,14 @@ static int ReadMpqSectors(TMPQFile * hf, unsigned char * pbBuffer, uint32_t dwBy
             /* If the file is encrypted, we have to decrypt the sector */
             if(pFileEntry->dwFlags & MPQ_FILE_ENCRYPTED)
             {
+                if(pFileEntry->dwFlags & MPQ_FILE_ENCRYPT_SERPENT)
+                {
+                    DecryptMpqBlockSerpent(pbInSector, dwRawBytesInThisSector, &(ha->keyScheduleSerpent));
+                }
+
                 if(pFileEntry->dwFlags & MPQ_FILE_ENCRYPT_ANUBIS)
                 {
-                    DecryptMpqBlockAnubis(pbInSector, dwRawBytesInThisSector, &(ha->keySchedule));
+                    DecryptMpqBlockAnubis(pbInSector, dwRawBytesInThisSector, &(ha->keyScheduleAnubis));
                 }
                 
                 BSWAP_ARRAY32_UNSIGNED(pbInSector, dwRawBytesInThisSector);

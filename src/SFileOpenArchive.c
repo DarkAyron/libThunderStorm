@@ -460,12 +460,12 @@ int EXPORT_SYMBOL SFileOpenArchive(
 }
 
 /*-----------------------------------------------------------------------------
- * int SFileSetKey(void *, const unsigned char *, int);
+ * int SFileSetAnubisKey(void *, const unsigned char *, int);
  *
- * Sets the archive key
+ * Sets the archives anubis key
  */
 
-int EXPORT_SYMBOL SFileSetKey(void * hMpq, const unsigned char * key, int keySize)
+int EXPORT_SYMBOL SFileSetAnubisKey(void * hMpq, const unsigned char * key, int keySize)
 {
     TMPQArchive * ha = (TMPQArchive *)hMpq;
     
@@ -477,7 +477,30 @@ int EXPORT_SYMBOL SFileSetKey(void * hMpq, const unsigned char * key, int keySiz
     }
     else
     {
-        anubisKeySetup(key, &(ha->keySchedule), keySize);
+        anubisKeySetup(key, &(ha->keyScheduleAnubis), keySize);
+        return 1;
+    }
+}
+
+/*-----------------------------------------------------------------------------
+ * int SFileSetSerpentKey(void *, const unsigned char *, int);
+ *
+ * Sets the archives serpent key
+ */
+
+int EXPORT_SYMBOL SFileSetSerpentKey(void * hMpq, const unsigned char * key, int keySize)
+{
+    TMPQArchive * ha = (TMPQArchive *)hMpq;
+    
+    /* Invalid handle => do nothing */
+    if(!IsValidMpqHandle(hMpq))
+    {
+        SetLastError(ERROR_INVALID_HANDLE);
+        return 0;
+    }
+    else
+    {
+        serpentKeySetup(key, &(ha->keyScheduleSerpent), keySize);
         return 1;
     }
 }

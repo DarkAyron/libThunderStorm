@@ -354,6 +354,42 @@ void DecryptMpqBlockAnubis(void * pvDataBlock, uint32_t dwLength, anubisSchedule
     }
 }
 
+void EncryptMpqBlockSerpent(void * pvDataBlock, uint32_t dwLength, serpentSchedule_t * keySchedule)
+{
+    uint8_t * DataBlock;
+    uint8_t tmpBlock[16];
+    int i, j;
+    
+    /* encrypt sector block by block */
+    for(i = 0; i < dwLength; i+=16)
+    {
+        DataBlock = (uint8_t *)pvDataBlock + i;
+        
+        /* save the block */
+        memcpy(tmpBlock, DataBlock, 16);
+        
+        serpentEncrypt(keySchedule, tmpBlock, DataBlock);
+    }
+}
+
+void DecryptMpqBlockSerpent(void * pvDataBlock, uint32_t dwLength, serpentSchedule_t * keySchedule)
+{
+    uint8_t * DataBlock;
+    int i, j;
+    uint8_t tmpBlock[16];
+    
+    /* decrypt sector block by block */
+    for (i = 0; i < dwLength; i+=16)
+    {
+        DataBlock = (uint8_t *)pvDataBlock + i;
+        
+        /* save the block */
+        memcpy(tmpBlock, DataBlock, 16);
+        
+        serpentDecrypt(keySchedule, tmpBlock, DataBlock);
+    }
+}
+
 /**
  * Functions tries to get file decryption key. This comes from these facts
  *

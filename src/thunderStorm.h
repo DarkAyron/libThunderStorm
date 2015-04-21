@@ -104,6 +104,7 @@
 #define MPQ_FILE_ENCRYPTED          0x00010000  /* Indicates whether file is encrypted */
 #define MPQ_FILE_FIX_KEY            0x00020000  /* File decryption key has to be fixed */
 #define MPQ_FILE_ENCRYPT_ANUBIS     0x00040000  /* Use Anubis to encrypt the file */
+#define MPQ_FILE_ENCRYPT_SERPENT    0x00080000  /* Use Serpent to encrypt the file */
 #define MPQ_FILE_PATCH_FILE         0x00100000  /* The file is a patch file. Raw file data begin with TPatchInfo structure */
 #define MPQ_FILE_SINGLE_UNIT        0x01000000  /* File is stored as a single unit, rather than split into sectors (Thx, Quantam) */
 #define MPQ_FILE_DELETE_MARKER      0x02000000  /* File is a deletion marker. Used in MPQ patches, indicating that the file no longer exists. */
@@ -119,6 +120,7 @@
                                   MPQ_FILE_ENCRYPTED      |  \
                                   MPQ_FILE_FIX_KEY        |  \
                                   MPQ_FILE_ENCRYPT_ANUBIS |  \
+                                  MPQ_FILE_ENCRYPT_SERPENT|  \
                                   MPQ_FILE_PATCH_FILE     |  \
                                   MPQ_FILE_SINGLE_UNIT    |  \
                                   MPQ_FILE_DELETE_MARKER  |  \
@@ -820,7 +822,8 @@ uint32_t   SFileSetLocale(uint32_t lcNewLocale);
 int   SFileOpenArchive(const char * szMpqName, uint32_t dwPriority, uint32_t dwFlags, void * * phMpq);
 int   SFileCreateArchive(const char * szMpqName, uint32_t dwCreateFlags, uint32_t dwMaxFileCount, void * * phMpq);
 int   SFileCreateArchive2(const char * szMpqName, PSFILE_CREATE_MPQ pCreateInfo, void * * phMpq);
-int   SFileSetKey(void * hMpq, const unsigned char * key, int keySize);
+int   SFileSetAnubisKey(void * hMpq, const unsigned char * key, int keySize);
+int   SFileSetSerpentKey(void * hMpq, const unsigned char * key, int keySize);
 
 int   SFileSetDownloadCallback(void * hMpq, SFILE_DOWNLOAD_CALLBACK DownloadCB, void * pvUserData);
 int   SFileFlushArchive(void * hMpq);
