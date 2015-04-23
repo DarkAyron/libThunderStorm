@@ -95,10 +95,6 @@ static int ReadMpqSectors(TMPQFile * hf, unsigned char * pbBuffer, uint32_t dwBy
     /* Calculate raw file offset where the sector(s) are stored. */
     RawFilePos = CalculateRawSectorOffset(hf, dwRawSectorOffset);
 
-    /* Adjust number of bytes, if necessary */
-    if(dwRawBytesToRead % 16 > 0)
-        dwRawBytesToRead += 16 - dwRawBytesToRead % 16;
-
     /* Set file pointer and read all required sectors */
     if(FileStream_Read(ha->pStream, &RawFilePos, pbInSector, dwRawBytesToRead))
     {
@@ -110,6 +106,13 @@ static int ReadMpqSectors(TMPQFile * hf, unsigned char * pbBuffer, uint32_t dwBy
             uint32_t dwRawBytesInThisSector = ha->dwSectorSize;
             uint32_t dwBytesInThisSector = ha->dwSectorSize;
             uint32_t dwIndex = dwSectorIndex + i;
+
+            /* If there is not enough bytes in the last sector, */
+            /* cut the number of bytes in this sector */
+            if(dwRawBytesInThisSector > dwBytesToRead)
+                dwRawBytesInThisSector = dwBytesToRead;
+            if(dwBytesInThisSector > dwBytesToRead)
+                dwBytesInThisSector = dwBytesToRead;
 
             /* If the file is compressed, we have to adjust the raw sector size */
             if(pFileEntry->dwFlags & MPQ_FILE_COMPRESS_MASK)
@@ -144,13 +147,6 @@ static int ReadMpqSectors(TMPQFile * hf, unsigned char * pbBuffer, uint32_t dwBy
                 DecryptMpqBlock(pbInSector, dwRawBytesInThisSector, hf->dwFileKey + dwIndex);
                 BSWAP_ARRAY32_UNSIGNED(pbInSector, dwRawBytesInThisSector);
             }
-
-            /* If there is not enough bytes in the last sector, */
-            /* cut the number of bytes in this sector */
-            if(dwRawBytesInThisSector > dwBytesToRead)
-                dwRawBytesInThisSector = dwBytesToRead;
-            if(dwBytesInThisSector > dwBytesToRead)
-                dwBytesInThisSector = dwBytesToRead;
 
             /* If the file has sector CRC check turned on, perform it */
             if(hf->bCheckSectorCRCs && hf->SectorChksums != NULL)

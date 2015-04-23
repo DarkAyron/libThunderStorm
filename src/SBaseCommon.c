@@ -322,16 +322,27 @@ void EncryptMpqBlockAnubis(void * pvDataBlock, uint32_t dwLength, anubisSchedule
 {
     uint8_t * DataBlock;
     uint8_t tmpBlock[16];
+    uint8_t residualBytes = dwLength % 16;
+    uint32_t nBlocks = dwLength / 16;
     int i, j;
     
     /* encrypt sector block by block */
-    for(i = 0; i < dwLength; i+=16)
+    for(i = 0; i < nBlocks; i++)
     {
-        DataBlock = (uint8_t *)pvDataBlock + i;
+        DataBlock = (uint8_t *)pvDataBlock + i * 16;
         
         /* save the block */
         memcpy(tmpBlock, DataBlock, 16);
         
+        anubisEncrypt(keySchedule, tmpBlock, DataBlock);
+    }
+    
+    /* if the last block is incomplete, do the CTS */
+    if(residualBytes > 0)
+    {
+        memcpy(tmpBlock, DataBlock + 16, residualBytes);
+        memcpy(DataBlock + 16, DataBlock, residualBytes);
+        memcpy(tmpBlock + residualBytes, DataBlock + residualBytes, 16 - residualBytes);
         anubisEncrypt(keySchedule, tmpBlock, DataBlock);
     }
 }
@@ -341,15 +352,26 @@ void DecryptMpqBlockAnubis(void * pvDataBlock, uint32_t dwLength, anubisSchedule
     uint8_t * DataBlock;
     int i, j;
     uint8_t tmpBlock[16];
+    uint8_t residualBytes = dwLength % 16;
+    uint32_t nBlocks = dwLength / 16;
     
     /* decrypt sector block by block */
-    for (i = 0; i < dwLength; i+=16)
+    for (i = 0; i < nBlocks; i++)
     {
-        DataBlock = (uint8_t *)pvDataBlock + i;
+        DataBlock = (uint8_t *)pvDataBlock + i * 16;
         
         /* save the block */
         memcpy(tmpBlock, DataBlock, 16);
         
+        anubisDecrypt(keySchedule, tmpBlock, DataBlock);
+    }
+    
+    /* if the last block is incomplete, undo the CTS */
+    if(residualBytes > 0)
+    {
+        memcpy(tmpBlock, DataBlock + 16, residualBytes);
+        memcpy(DataBlock + 16, DataBlock, residualBytes);
+        memcpy(tmpBlock + residualBytes, DataBlock + residualBytes, 16 - residualBytes);
         anubisDecrypt(keySchedule, tmpBlock, DataBlock);
     }
 }
@@ -358,16 +380,27 @@ void EncryptMpqBlockSerpent(void * pvDataBlock, uint32_t dwLength, serpentSchedu
 {
     uint8_t * DataBlock;
     uint8_t tmpBlock[16];
+    uint8_t residualBytes = dwLength % 16;
+    uint32_t nBlocks = dwLength / 16;
     int i, j;
     
     /* encrypt sector block by block */
-    for(i = 0; i < dwLength; i+=16)
+    for(i = 0; i < nBlocks; i++)
     {
-        DataBlock = (uint8_t *)pvDataBlock + i;
+        DataBlock = (uint8_t *)pvDataBlock + i * 16;
         
         /* save the block */
         memcpy(tmpBlock, DataBlock, 16);
         
+        serpentEncrypt(keySchedule, tmpBlock, DataBlock);
+    }
+    
+    /* if the last block is incomplete, do the CTS */
+    if(residualBytes > 0)
+    {
+        memcpy(tmpBlock, DataBlock + 16, residualBytes);
+        memcpy(DataBlock + 16, DataBlock, residualBytes);
+        memcpy(tmpBlock + residualBytes, DataBlock + residualBytes, 16 - residualBytes);
         serpentEncrypt(keySchedule, tmpBlock, DataBlock);
     }
 }
@@ -377,15 +410,26 @@ void DecryptMpqBlockSerpent(void * pvDataBlock, uint32_t dwLength, serpentSchedu
     uint8_t * DataBlock;
     int i, j;
     uint8_t tmpBlock[16];
+    uint8_t residualBytes = dwLength % 16;
+    uint32_t nBlocks = dwLength / 16;
     
     /* decrypt sector block by block */
-    for (i = 0; i < dwLength; i+=16)
+    for (i = 0; i < nBlocks; i++)
     {
-        DataBlock = (uint8_t *)pvDataBlock + i;
+        DataBlock = (uint8_t *)pvDataBlock + i * 16;
         
         /* save the block */
         memcpy(tmpBlock, DataBlock, 16);
         
+        serpentDecrypt(keySchedule, tmpBlock, DataBlock);
+    }
+    
+    /* if the last block is incomplete, undo the CTS */
+    if(residualBytes > 0)
+    {
+        memcpy(tmpBlock, DataBlock + 16, residualBytes);
+        memcpy(DataBlock + 16, DataBlock, residualBytes);
+        memcpy(tmpBlock + residualBytes, DataBlock + residualBytes, 16 - residualBytes);
         serpentDecrypt(keySchedule, tmpBlock, DataBlock);
     }
 }

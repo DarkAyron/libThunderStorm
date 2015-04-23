@@ -203,12 +203,16 @@ static int WriteDataToMpqFile(
                         hf->SectorChksums[dwSectorIndex] = adler32(0, pbCompressed, nOutBuffer);
                 }
 
-                /* Pad the sector if, necessary */
-                if(dwBytesInSector % 16 > 0)
+                /* Pad the sector, if necessary */
+                if((pFileEntry->dwFlags & (MPQ_FILE_ENCRYPT_ANUBIS | MPQ_FILE_ENCRYPT_SERPENT)) && dwBytesInSector < 16)
                 {
-                    memset(pbToWrite + dwBytesInSector, 0, 16 - dwBytesInSector % 16);
-                    dwBytesInSector += 16 - dwBytesInSector % 16;
-		}
+                    uint32_t padBytes = 16 - dwBytesInSector;
+                    memset(pbToWrite + dwBytesInSector, 0, padBytes);
+                    
+                    dwBytesInSector += padBytes;
+                    if(hf->SectorOffsets != NULL)
+                        hf->SectorOffsets[dwSectorIndex+1] = hf->SectorOffsets[dwSectorIndex] + dwBytesInSector;
+                }
 
                 /* Encrypt the sector, if necessary */
                 if(pFileEntry->dwFlags & MPQ_FILE_ENCRYPTED)
