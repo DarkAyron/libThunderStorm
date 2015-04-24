@@ -290,7 +290,6 @@ TMPQExtHeader * LoadExtTable(TMPQArchive * ha, uint64_t ByteOffset, size_t Size,
 TMPQHetTable * LoadHetTable(TMPQArchive * ha);
 TMPQBetTable * LoadBetTable(TMPQArchive * ha);
 
-TMPQHash * LoadHashTable(TMPQArchive * ha);
 TMPQBlock * LoadBlockTable(TMPQArchive * ha);
 TMPQBlock * TranslateBlockTable(TMPQArchive * ha, uint64_t * pcbTableSize, int * pbNeedHiBlockTable);
 

@@ -116,6 +116,8 @@
 #define MPQ_FILE_EXISTS             0x80000000  /* Set if file exists, reset when the file was deleted */
 #define MPQ_FILE_REPLACEEXISTING    0x80000000  /* Replace when the file exist (SFileAddFile) */
 
+#define MPQ_FILE_EXISTS_MASK        0xF00000FF  /* These must be either zero or MPQ_FILE_EXISTS */
+
 #define MPQ_FILE_VALID_FLAGS     (MPQ_FILE_IMPLODE        |  \
                                   MPQ_FILE_COMPRESS       |  \
                                   MPQ_FILE_ENCRYPTED      |  \
