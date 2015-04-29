@@ -255,6 +255,8 @@
 #define ERROR_WEAK_SIGNATURE_ERROR           3  /* There is a weak signature but sign check failed */
 #define ERROR_STRONG_SIGNATURE_OK            4  /* There is a strong signature and sign check passed */
 #define ERROR_STRONG_SIGNATURE_ERROR         5  /* There is a strong signature but sign check failed */
+#define ERROR_SECURE_SIGNATURE_OK            6  /* There is a secure signature and sign check passed */
+#define ERROR_SECURE_SIGNATURE_ERROR         7  /* There is a secure signature but sign check failed */
 
 /* Platform-specific error codes for UNIX-based platforms */
 #define ERROR_SUCCESS                        0
@@ -906,6 +908,7 @@ uint32_t  SFileVerifyFile(void * hMpq, const char * szFileName, uint32_t dwFlags
 int    SFileVerifyRawData(void * hMpq, uint32_t dwWhatToVerify, const char * szFileName);
 
 /* Verifies the signature, if present */
+int   SFileSetRSAKey(void * hMpq, unsigned char * key, size_t keyLength);
 int   SFileSignArchive(void * hMpq, uint32_t dwSignatureType);
 uint32_t  SFileVerifyArchive(void * hMpq);
 

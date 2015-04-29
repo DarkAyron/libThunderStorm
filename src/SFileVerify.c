@@ -29,7 +29,7 @@
  */
 
 static const char * szBlizzardWeakPrivateKey =
-    "-----BEGIN PRIVATE KEY-----"
+    "-----BEGIN RSA PRIVATE KEY-----\n"
     "MIIBOQIBAAJBAJJidwS/uILMBSO5DLGsBFknIXWWjQJe2kfdfEk3G/j66w4KkhZ1"
     "V61Rt4zLaMVCYpDun7FLwRjkMDSepO1q2DcCAwEAAQJANtiztVDMJh2hE1hjPDKy"
     "UmEJ9U/aN3gomuKOjbQbQ/bWWcM/WfhSVHmPqtqh/bQI2UXFr0rnXngeteZHLr/b"
@@ -37,16 +37,16 @@ static const char * szBlizzardWeakPrivateKey =
     "L4MWaiKuOzq08mSyNqPeN8oSy18q848CIHeMn+3s+eOmu7su1UYQl6yH7OrdBd1q"
     "3UxfFNEJiAbhAiAqxdCyOxHGlbM7aS3DOg3cq5ayoN2cvtV7h1R4t8OmVwIgF+5z"
     "/6vkzBUsZhd8Nwyis+MeQYH0rpFpMKdTlqmPF2Q="
-    "-----END PRIVATE KEY-----";
+    "-----END RSA PRIVATE KEY-----";
 
 static const char * szBlizzardWeakPublicKey =
-    "-----BEGIN PUBLIC KEY-----"
+    "-----BEGIN PUBLIC KEY-----\n"
     "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAJJidwS/uILMBSO5DLGsBFknIXWWjQJe"
     "2kfdfEk3G/j66w4KkhZ1V61Rt4zLaMVCYpDun7FLwRjkMDSepO1q2DcCAwEAAQ=="
     "-----END PUBLIC KEY-----";
 
 static const char * szBlizzardStrongPublicKey =
-    "-----BEGIN PUBLIC KEY-----"
+    "-----BEGIN PUBLIC KEY-----\n"
     "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsQZ+ziT2h8h+J/iMQpgd"
     "tH1HaJzOBE3agjU4yMPcrixaPOZoA4t8bwfey7qczfWywocYo3pleytFF+IuD4HD"
     "Fl9OXN1SFyupSgMx1EGZlgbFAomnbq9MQJyMqQtMhRAjFgg4TndS7YNb+JMSAEKp"
@@ -57,7 +57,7 @@ static const char * szBlizzardStrongPublicKey =
     "-----END PUBLIC KEY-----";
 
 static const char * szWarcraft3MapPublicKey =
-    "-----BEGIN PUBLIC KEY-----"
+    "-----BEGIN PUBLIC KEY-----\n"
     "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1BwklUUQ3UvjizOBRoF5"
     "yyOVc7KD+oGOQH5i6eUk1yfs0luCC70kNucNrfqhmviywVtahRse1JtXCPrx2bd3"
     "iN8Dx91fbkxjYIOGTsjYoHKTp0BbaFkJih776fcHgnFSb+7mJcDuJVvJOXxEH6w0"
@@ -68,7 +68,7 @@ static const char * szWarcraft3MapPublicKey =
     "-----END PUBLIC KEY-----";
 
 static const char * szWowPatchPublicKey =
-    "-----BEGIN PUBLIC KEY-----"
+    "-----BEGIN PUBLIC KEY-----\n"
     "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwOsMV0LagAWPEtEQM6b9"
     "6FHFkUyGbbyda2/Dfc9dyl21E9QvX+Yw7qKRMAKPzA2TlQQLZKvXpnKXF/YIK5xa"
     "5uwg9CEHCEAYolLG4xn0FUOE0E/0PuuytI0p0ICe6rk00PifZzTr8na2wI/l/GnQ"
@@ -79,7 +79,7 @@ static const char * szWowPatchPublicKey =
     "-----END PUBLIC KEY-----";
 
 static const char * szWowSurveyPublicKey =
-    "-----BEGIN PUBLIC KEY-----"
+    "-----BEGIN PUBLIC KEY-----\n"
     "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnIt1DR6nRyyKsy2qahHe"
     "MKLtacatn/KxieHcwH87wLBxKy+jZ0gycTmJ7SaTdBAEMDs/V5IPIXEtoqYnid2c"
     "63TmfGDU92oc3Ph1PWUZ2PWxBhT06HYxRdbrgHw9/I29pNPi/607x+lzPORITOgU"
@@ -90,7 +90,7 @@ static const char * szWowSurveyPublicKey =
     "-----END PUBLIC KEY-----";
 
 static const char * szStarcraft2MapPublicKey =
-    "-----BEGIN PUBLIC KEY-----"
+    "-----BEGIN PUBLIC KEY-----\n"
     "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAmk4GT8zb+ICC25a17KZB"
     "q/ygKGJ2VSO6IT5PGHJlm1KfnHBA4B6SH3xMlJ4c6eG2k7QevZv+FOhjsAHubyWq"
     "2VKqWbrIFKv2ILc2RfMn8J9EDVRxvcxh6slRrVL69D0w1tfVGjMiKq2Fym5yGoRT"
@@ -118,16 +118,34 @@ static void memrev(unsigned char *buf, size_t count)
 
 static int decode_base64_key(const char * szKeyBase64, rsa_key * key)
 {
-    unsigned char decoded_key[0x200];
+    unsigned char decoded_key[0xA00];
+    const char * szSecHead = "-----BEGIN RSA PRIVATE KEY-----\n";
+    const char * szSecTail = "-----END RSA PRIVATE KEY-----";
+    const char * szPubHead = "-----BEGIN PUBLIC KEY-----\n";
+    const char * szPubTail = "-----END PUBLIC KEY-----";
     const char * szBase64Begin;
     const char * szBase64End;
     unsigned long decoded_length = sizeof(decoded_key);
     unsigned long length;
 
     /* Find out the begin of the BASE64 data */
-    szBase64Begin = szKeyBase64 + strlen("-----BEGIN PUBLIC KEY-----");
-    szBase64End   = szBase64Begin + strlen(szBase64Begin) - strlen("-----END PUBLIC KEY-----");
-    if(szBase64End[0] != '-')
+    if(!memcmp(szKeyBase64, szSecHead, strlen(szSecHead)))
+    {
+        /* Secret key */
+        szBase64Begin = strstr(szKeyBase64, szSecHead) + strlen(szSecHead);
+        szBase64End = strstr(szKeyBase64, szSecTail);
+        if((szBase64End == NULL) || (szBase64Begin == NULL))
+            return 0;
+    }
+    else if(!memcmp(szKeyBase64, szPubHead, strlen(szPubHead)))
+    {
+        /* Public key */
+        szBase64Begin = strstr(szKeyBase64, szPubHead) + strlen(szPubHead);
+        szBase64End = strstr(szKeyBase64, szPubTail);
+        if((szBase64End == NULL) || (szBase64Begin == NULL))
+            return 0;
+    }
+    else
         return 0;
 
     /* decode the base64 string */
@@ -259,6 +277,82 @@ static int CalculateMpqHashMd5(
     return 1;
 }
 
+static int CalculateMpqHashSha1(
+    TMPQArchive * ha,
+    PMPQ_SIGNATURE_INFO pSI,
+    unsigned char * pSha1Digest)
+{
+    hash_state sha1_state;
+    uint64_t BeginBuffer;
+    uint64_t EndBuffer;
+    unsigned char * pbDigestBuffer = NULL;
+
+    /* Allocate buffer for creating the MPQ digest. */
+    pbDigestBuffer = STORM_ALLOC(uint8_t, MPQ_DIGEST_UNIT_SIZE);
+    if(pbDigestBuffer == NULL)
+        return 0;
+
+    /* Initialize the SHA1 hash state */
+    sha1_init(&sha1_state);
+
+    /* Set the byte offset of begin of the data */
+    BeginBuffer = pSI->BeginMpqData;
+
+    /* Create the digest */
+    for(;;)
+    {
+        uint64_t BytesRemaining;
+        unsigned char * pbSigBegin = NULL;
+        unsigned char * pbSigEnd = NULL;
+        uint32_t dwToRead = MPQ_DIGEST_UNIT_SIZE;
+
+        /* Check the number of bytes remaining */
+        BytesRemaining = pSI->EndMpqData - BeginBuffer;
+        if(BytesRemaining < MPQ_DIGEST_UNIT_SIZE)
+            dwToRead = (uint32_t)BytesRemaining;
+        if(dwToRead == 0)
+            break;
+
+        /* Read the next chunk */
+        if(!FileStream_Read(ha->pStream, &BeginBuffer, pbDigestBuffer, dwToRead))
+        {
+            STORM_FREE(pbDigestBuffer);
+            return 0;
+        }
+
+        /* Move the current byte offset */
+        EndBuffer = BeginBuffer + dwToRead;
+
+        /* Check if the signature is within the loaded digest */
+        if(BeginBuffer <= pSI->BeginExclude && pSI->BeginExclude < EndBuffer)
+            pbSigBegin = pbDigestBuffer + (size_t)(pSI->BeginExclude - BeginBuffer);
+        if(BeginBuffer <= pSI->EndExclude && pSI->EndExclude < EndBuffer)
+            pbSigEnd = pbDigestBuffer + (size_t)(pSI->EndExclude - BeginBuffer);
+
+        /* Zero the part that belongs to the signature */
+        if(pbSigBegin != NULL || pbSigEnd != NULL)
+        {
+            if(pbSigBegin == NULL)
+                pbSigBegin = pbDigestBuffer;
+            if(pbSigEnd == NULL)
+                pbSigEnd = pbDigestBuffer + dwToRead;
+
+            memset(pbSigBegin, 0, (pbSigEnd - pbSigBegin));
+        }
+
+        /* Pass the buffer to the hashing function */
+        sha1_process(&sha1_state, pbDigestBuffer, dwToRead);
+
+        /* Move pointers */
+        BeginBuffer += dwToRead;
+    }
+
+    /* Finalize the SHA1 hash */
+    sha1_done(&sha1_state, pSha1Digest);
+    STORM_FREE(pbDigestBuffer);
+    return 1;
+}
+
 static void AddTailToSha1(
     hash_state * psha1_state,
     const char * szTail)
@@ -278,7 +372,7 @@ static void AddTailToSha1(
     sha1_process(psha1_state, szUpperCase, nLength);
 }
 
-static int CalculateMpqHashSha1(
+static int CalculateMpqHashSha1WithTail(
     TMPQArchive * ha,
     PMPQ_SIGNATURE_INFO pSI,
     unsigned char * sha1_tail0,
@@ -442,30 +536,70 @@ static uint32_t VerifyWeakSignature(
 {
     uint8_t RevSignature[MPQ_WEAK_SIGNATURE_SIZE];
     uint8_t Md5Digest[MD5_DIGEST_SIZE];
-    rsa_key key;
+    rsa_key * key;
+    rsa_key blizzKey;
     int hash_idx = find_hash("md5");
     int result = 0;
 
     /* The signature might be zeroed out. In that case, we ignore it */
-    if(!IsValidSignature(pSI->Signature))
+    if(!IsValidSignature(pSI->Signature, pSI->cbSignatureSize))
         return ERROR_WEAK_SIGNATURE_OK;
 
     /* Calculate hash of the entire archive, skipping the (signature) file */
     if(!CalculateMpqHashMd5(ha, pSI, Md5Digest))
         return ERROR_VERIFY_FAILED;
 
-    /* Import the Blizzard key in OpenSSL format */
-    if(!decode_base64_key(szBlizzardWeakPublicKey, &key))
-        return ERROR_VERIFY_FAILED;
+    key = &(ha->keyRSA);
+    
+    /* Import the Blizzard key in OpenSSL format if needed */
+    if(key->N == NULL)
+    {
+        if(!decode_base64_key(szBlizzardWeakPublicKey, &blizzKey))
+            return ERROR_VERIFY_FAILED;
+        else
+            key = &blizzKey;
+    }
 
     /* Verify the signature */
     memcpy(RevSignature, &pSI->Signature[8], MPQ_WEAK_SIGNATURE_SIZE);
     memrev(RevSignature, MPQ_WEAK_SIGNATURE_SIZE);
-    rsa_verify_hash_ex(RevSignature, MPQ_WEAK_SIGNATURE_SIZE, Md5Digest, sizeof(Md5Digest), LTC_LTC_PKCS_1_V1_5, hash_idx, 0, &result, &key);
-    rsa_free(&key);
+    rsa_verify_hash_ex(RevSignature, MPQ_WEAK_SIGNATURE_SIZE, Md5Digest, sizeof(Md5Digest), LTC_LTC_PKCS_1_V1_5, hash_idx, 0, &result, key);
+    if(key == &blizzKey)
+        rsa_free(key);
 
     /* Return the result */
     return result ? ERROR_WEAK_SIGNATURE_OK : ERROR_WEAK_SIGNATURE_ERROR;
+}
+
+static uint32_t VerifySecureSignature(
+    TMPQArchive * ha,
+    PMPQ_SIGNATURE_INFO pSI)
+{
+    uint8_t RevSignature[MPQ_SECURE_SIGNATURE_SIZE];
+    uint8_t Sha1Digest[SHA1_DIGEST_SIZE];
+    rsa_key * key = &(ha->keyRSA);
+    int hash_idx = find_hash("sha1");
+    int result = 0;
+
+    /* The signature might be zeroed out. In that case, we ignore it */
+    if(!IsValidSignature(pSI->Signature, pSI->cbSignatureSize))
+        return ERROR_SECURE_SIGNATURE_OK;
+
+    /* If we have no key, we can't verify */
+    if(key->N == NULL)
+        return ENOKEY;
+
+    /* Calculate hash of the entire archive, skipping the (signature) file */
+    if(!CalculateMpqHashSha1(ha, pSI, Sha1Digest))
+        return ERROR_VERIFY_FAILED;
+
+    /* Verify the signature */
+    memcpy(RevSignature, &pSI->Signature[8], pSI->cbSignatureSize);
+    memrev(RevSignature, pSI->cbSignatureSize);
+    rsa_verify_hash_ex(RevSignature, pSI->cbSignatureSize, Sha1Digest, sizeof(Sha1Digest), LTC_LTC_PKCS_1_V1_5, hash_idx, 0, &result, key);
+
+    /* Return the result */
+    return result ? ERROR_SECURE_SIGNATURE_OK : ERROR_SECURE_SIGNATURE_ERROR;
 }
 
 static uint32_t VerifyStrongSignatureWithKey(
@@ -505,7 +639,7 @@ static uint32_t VerifyStrongSignature(
     size_t digest_offset;
 
     /* Calculate SHA1 hash of the archive */
-    if(!CalculateMpqHashSha1(ha, pSI, Sha1Digest_tail0, Sha1Digest_tail1, Sha1Digest_tail2))
+    if(!CalculateMpqHashSha1WithTail(ha, pSI, Sha1Digest_tail0, Sha1Digest_tail1, Sha1Digest_tail2))
         return ERROR_VERIFY_FAILED;
 
     /* Prepare the signature for decryption */
@@ -738,7 +872,7 @@ int QueryMpqSignatureInfo(
     /* Calculate the range of the MPQ */
     CalculateArchiveRange(ha, pSI);
 
-    /* If there is "(signature)" file in the MPQ, it has a weak signature */
+    /* If there is "(signature)" file in the MPQ, it has a weak or secure signature */
     pFileEntry = GetFileEntryLocale(ha, SIGNATURE_NAME, LANG_NEUTRAL);
     if(pFileEntry != NULL)
     {
@@ -755,7 +889,17 @@ int QueryMpqSignatureInfo(
                 return 0;
 
             pSI->SignatureTypes |= SIGNATURE_TYPE_WEAK;
-            pSI->cbSignatureSize = dwFileSize;
+            pSI->cbSignatureSize = dwFileSize - 8;
+            return 1;
+        }
+        else if(dwFileSize <= MPQ_SECURE_SIGNATURE_SIZE + 8)
+        {
+            /* Read the secure signature */
+            if(!FileStream_Read(ha->pStream, &pSI->BeginExclude, pSI->Signature, dwFileSize))
+                return 0;
+
+            pSI->SignatureTypes |= SIGNATURE_TYPE_SECURE;
+            pSI->cbSignatureSize = dwFileSize - 8;
             return 1;
         }
     }
@@ -788,7 +932,8 @@ int QueryMpqSignatureInfo(
 int SSignFileCreate(TMPQArchive * ha)
 {
     TMPQFile * hf = NULL;
-    uint8_t EmptySignature[MPQ_SIGNATURE_FILE_SIZE];
+    uint8_t EmptySignature[MPQ_SECURE_SIGNATURE_FILE_SIZE];
+    size_t nSignatureSize;
     int nError = ERROR_SUCCESS;
 
     /* Only save the signature if we should do so */
@@ -798,11 +943,20 @@ int SSignFileCreate(TMPQArchive * ha)
         assert(ha->dwFileFlags3 == MPQ_FILE_EXISTS);
         assert(ha->dwReservedFiles > 0);
 
+        /* Determine the signature size */
+        if(ha->keyRSA.N == NULL)
+        {
+            nSignatureSize = MPQ_SIGNATURE_FILE_SIZE;
+        }
+        else
+        {
+            nSignatureSize = mp_count_bits(ha->keyRSA.N) / 8 + 8;
+        }
         /* Create the (signature) file file in the MPQ */
         /* Note that the file must not be compressed or encrypted */
         nError = SFileAddFile_Init(ha, SIGNATURE_NAME,
                                        0,
-                                       sizeof(EmptySignature),
+                                       nSignatureSize,
                                        LANG_NEUTRAL,
                                        ha->dwFileFlags3 | MPQ_FILE_REPLACEEXISTING,
                                       &hf);
@@ -811,8 +965,8 @@ int SSignFileCreate(TMPQArchive * ha)
         if(nError == ERROR_SUCCESS)
         {
             /* Write the empty zeroed file to the MPQ */
-            memset(EmptySignature, 0, sizeof(EmptySignature));
-            nError = SFileAddFile_Write(hf, EmptySignature, (uint32_t)sizeof(EmptySignature), 0);
+            memset(EmptySignature, 0, nSignatureSize);
+            nError = SFileAddFile_Write(hf, EmptySignature, (uint32_t)nSignatureSize, 0);
             SFileAddFile_Finish(hf);
         }
 
@@ -827,41 +981,73 @@ int SSignFileCreate(TMPQArchive * ha)
 int SSignFileFinish(TMPQArchive * ha)
 {
     MPQ_SIGNATURE_INFO si;
-    unsigned long signature_len = MPQ_WEAK_SIGNATURE_SIZE;
-    uint8_t WeakSignature[MPQ_SIGNATURE_FILE_SIZE];
-    uint8_t Md5Digest[MD5_DIGEST_SIZE];
-    rsa_key key;
-    int hash_idx = find_hash("md5");
+    unsigned long signature_len;
+    uint8_t Signature[MPQ_SECURE_SIGNATURE_SIZE];
+    uint8_t Digest[SHA1_DIGEST_SIZE];
+    unsigned long DigestLength;
+    rsa_key * key;
+    rsa_key blizzKey;
+    int hash_idx;
 
     /* Sanity checks */
     assert((ha->dwFlags & MPQ_FLAG_CHANGED) == 0);
     assert(ha->dwFileFlags3 == MPQ_FILE_EXISTS);
 
-    /* Query the weak signature info */
+    /* Query the signature info */
     memset(&si, 0, sizeof(MPQ_SIGNATURE_INFO));
     if(!QueryMpqSignatureInfo(ha, &si))
         return ERROR_FILE_CORRUPT;
+    signature_len = si.cbSignatureSize;
 
     /* There must be exactly one signature */
-    if(si.SignatureTypes != SIGNATURE_TYPE_WEAK)
+    if((si.SignatureTypes != SIGNATURE_TYPE_WEAK) == (si.SignatureTypes != SIGNATURE_TYPE_SECURE))
         return ERROR_FILE_CORRUPT;
 
-    /* Calculate MD5 of the entire archive */
-    if(!CalculateMpqHashMd5(ha, &si, Md5Digest))
-        return ERROR_VERIFY_FAILED;
+    if(si.SignatureTypes == SIGNATURE_TYPE_WEAK)
+    {
+        hash_idx = find_hash("md5");
+        DigestLength = MD5_DIGEST_SIZE;
+        
+        /* Calculate MD5 of the entire archive */
+        if(!CalculateMpqHashMd5(ha, &si, Digest))
+            return ERROR_VERIFY_FAILED;
+    }
+    else
+    {
+        hash_idx = find_hash("sha1");
+        DigestLength = SHA1_DIGEST_SIZE;
+        
+        /* Calculate SHA1 of the entire archive */
+        if(!CalculateMpqHashSha1(ha, &si, Digest))
+            return ERROR_VERIFY_FAILED;
+    }
 
-    /* Decode the private key */
-    if(!decode_base64_key(szBlizzardWeakPrivateKey, &key))
-        return ERROR_VERIFY_FAILED;
+    if(ha->keyRSA.N == NULL)
+    {
+        key = &blizzKey;
+        
+        /* Decode the private key */
+        if(!decode_base64_key(szBlizzardWeakPrivateKey, key))
+            return ERROR_VERIFY_FAILED;
+    }
+    else
+    {
+        if(ha->keyRSA.type != PK_PRIVATE)
+            return ENOKEY;
+        
+        key = &(ha->keyRSA);
+    }
 
     /* Sign the hash */
-    memset(WeakSignature, 0, sizeof(WeakSignature));
-    rsa_sign_hash_ex(Md5Digest, sizeof(Md5Digest), WeakSignature + 8, &signature_len, LTC_LTC_PKCS_1_V1_5, 0, 0, hash_idx, 0, &key);
-	memrev(WeakSignature + 8, MPQ_WEAK_SIGNATURE_SIZE); 
-    rsa_free(&key);
+    memset(Signature, 0, sizeof(Signature));
+    rsa_sign_hash_ex(Digest, DigestLength, Signature + 8, &signature_len, LTC_LTC_PKCS_1_V1_5, 0, 0, hash_idx, 0, key);
+	memrev(Signature + 8, signature_len);
+
+    if(key == &blizzKey)
+        rsa_free(key);
 
     /* Write the signature to the MPQ. Don't use SFile* functions, but write the hash directly */
-    if(!FileStream_Write(ha->pStream, &si.BeginExclude, WeakSignature, MPQ_SIGNATURE_FILE_SIZE))
+    if(!FileStream_Write(ha->pStream, &si.BeginExclude, Signature, signature_len + 8))
         return GetLastError();
 
     return ERROR_SUCCESS;
@@ -988,7 +1174,10 @@ uint32_t EXPORT_SYMBOL SFileVerifyArchive(void * hMpq)
 
     /* Verify input parameters */
     if(!IsValidMpqHandle(hMpq))
+    {
+        SetLastError(ERROR_INVALID_PARAMETER);
         return ERROR_VERIFY_FAILED;
+    }
 
     /* If the archive was modified, we need to flush it */
     if(ha->dwFlags & MPQ_FLAG_CHANGED)
@@ -999,12 +1188,18 @@ uint32_t EXPORT_SYMBOL SFileVerifyArchive(void * hMpq)
     if(!QueryMpqSignatureInfo(ha, &si))
         return ERROR_VERIFY_FAILED;
 
+    SetLastError(ERROR_SUCCESS);
+
     /* If there is no signature */
     if(si.SignatureTypes == 0)
         return ERROR_NO_SIGNATURE;
 
     /* We haven't seen a MPQ with both signatures */
-    assert(si.SignatureTypes == SIGNATURE_TYPE_WEAK || si.SignatureTypes == SIGNATURE_TYPE_STRONG);
+    assert(si.SignatureTypes == SIGNATURE_TYPE_WEAK || si.SignatureTypes == SIGNATURE_TYPE_STRONG || si.SignatureTypes == SIGNATURE_TYPE_SECURE);
+
+    /* Verify the secure signature, if present */
+    if(si.SignatureTypes & SIGNATURE_TYPE_SECURE)
+        return VerifySecureSignature(ha, &si);
 
     /* Verify the strong signature, if present */
     if(si.SignatureTypes & SIGNATURE_TYPE_STRONG)
@@ -1017,7 +1212,7 @@ uint32_t EXPORT_SYMBOL SFileVerifyArchive(void * hMpq)
     return ERROR_NO_SIGNATURE;
 }
 
-/* Verifies the archive against the signature */
+/* Signs the archive */
 int EXPORT_SYMBOL SFileSignArchive(void * hMpq, uint32_t dwSignatureType)
 {
     TMPQArchive * ha;
@@ -1030,11 +1225,51 @@ int EXPORT_SYMBOL SFileSignArchive(void * hMpq, uint32_t dwSignatureType)
         return 0;
     }
 
-    /* We only support weak signature, and only for MPQs version 1.0 */
-    if(dwSignatureType != SIGNATURE_TYPE_WEAK)
+    /* We only support weak and secure signature */
+    if((dwSignatureType != SIGNATURE_TYPE_WEAK) && (dwSignatureType != SIGNATURE_TYPE_SECURE))
     {
         SetLastError(ERROR_INVALID_PARAMETER);
         return 0;
+    }
+
+    /* Check the key length */
+    if(dwSignatureType == SIGNATURE_TYPE_WEAK)
+    {
+        if(ha->keyRSA.N != NULL)
+        {
+            if(mp_count_bits(ha->keyRSA.N) != 512)
+            {
+                SetLastError(ERROR_INVALID_PARAMETER);
+                return 0;
+            }
+            if(ha->keyRSA.type == PK_PUBLIC)
+            {
+                SetLastError(ENOKEY);
+                return 0;
+            }
+        }
+    }
+    else
+    {
+        if(ha->keyRSA.N != NULL)
+        {
+            int nBits = mp_count_bits(ha->keyRSA.N);
+            if((nBits > 4096) || (nBits < 1024))
+            {
+                SetLastError(ERROR_INVALID_PARAMETER);
+                return 0;
+            }
+            if(ha->keyRSA.type == PK_PUBLIC)
+            {
+                SetLastError(ENOKEY);
+                return 0;
+            }
+        }
+        else
+        {
+                SetLastError(ENOKEY);
+                return 0;
+        }
     }
 
     /* The archive must not be malformed and must not be read-only */
@@ -1057,3 +1292,42 @@ int EXPORT_SYMBOL SFileSignArchive(void * hMpq, uint32_t dwSignatureType)
     return 1;
 }
 
+/* Sets the signing key */
+int EXPORT_SYMBOL SFileSetRSAKey(void * hMpq, unsigned char * key, size_t keyLength)
+{
+    TMPQArchive * ha;
+
+    /* Verify the archive handle */
+    ha = IsValidMpqHandle(hMpq);
+    if(ha == NULL)
+    {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return 0;
+    }
+
+    if(ha->keyRSA.N != NULL)
+        rsa_free(&(ha->keyRSA));
+
+    if(key[0] == '-')
+    {
+        /* looks like PEM-format */
+        if(decode_base64_key((char *)key, &(ha->keyRSA)))
+            return 1;
+        else
+        {
+            SetLastError(ERROR_INVALID_PARAMETER);
+            return 0;
+        }
+    }
+    else
+    {
+        /* must be DER */
+        if(rsa_import(key, keyLength, &(ha->keyRSA)) != CRYPT_OK)
+        {
+            SetLastError(ERROR_INVALID_PARAMETER);
+            return 0;
+        }
+        else
+            return 1;
+    }
+}

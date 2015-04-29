@@ -1,3 +1,4 @@
 Version 1.00
     - the fork begins
     - added Anubis and Serpent encryption
+    - added support for secure signatures

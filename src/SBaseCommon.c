@@ -1585,6 +1585,8 @@ void FreeArchiveHandle(TMPQArchive ** ha)
             STORM_FREE((*ha)->pHashTable);
         if((*ha)->pHetTable != NULL)
             FreeHetTable((*ha)->pHetTable);
+        if((*ha)->keyRSA.N != NULL)
+            rsa_free(&((*ha)->keyRSA));
         STORM_FREE(*ha);
         *ha = NULL;
     }
@@ -1650,13 +1652,13 @@ int IsValidMD5(unsigned char * pbMd5)
     return (Md5[0] | Md5[1] | Md5[2] | Md5[3]) ? 1 : 0;
 }
 
-int IsValidSignature(unsigned char * pbSignature)
+int IsValidSignature(unsigned char * pbSignature, size_t cbSignatureSize)
 {
     uint32_t * Signature = (uint32_t *)pbSignature;
     uint32_t SigValid = 0;
     int i;
 
-    for(i = 0; i < MPQ_WEAK_SIGNATURE_SIZE / sizeof(uint32_t); i++)
+    for(i = 0; i < cbSignatureSize / sizeof(uint32_t); i++)
         SigValid |= Signature[i];
 
     return (SigValid != 0) ? 1 : 0;

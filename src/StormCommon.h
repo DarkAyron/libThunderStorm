@@ -131,6 +131,7 @@ typedef struct _TMPQArchive
     void         * pvCompactUserData;           /* User data thats passed to the callback */
     anubisSchedule_t    keyScheduleAnubis;      /* Key schedule for anubis encryption */
     serpentSchedule_t   keyScheduleSerpent;     /* Key schedule for serpent encryption */
+    rsa_key             keyRSA;                 /* RSA key for archive signing and verifying */
 } TMPQArchive;                                      
 
 /* File handle structure */
@@ -183,6 +184,7 @@ typedef struct _TMPQFile
 #define MPQ_SECURE_SIGNATURE_SIZE              512
 #define MPQ_STRONG_SIGNATURE_ID         0x5349474E      /* ID of the strong signature ("NGIS") */
 #define MPQ_SIGNATURE_FILE_SIZE (MPQ_WEAK_SIGNATURE_SIZE + 8)
+#define MPQ_SECURE_SIGNATURE_FILE_SIZE (MPQ_SECURE_SIGNATURE_SIZE + 8)
 
 /* MPQ signature info */
 typedef struct _MPQ_SIGNATURE_INFO
@@ -261,7 +263,7 @@ uint32_t DetectFileKeyByContent(void * pvEncryptedData, uint32_t dwSectorSize, u
 uint32_t DecryptFileKey(const char * szFileName, uint64_t MpqPos, uint32_t dwFileSize, uint32_t dwFlags);
 
 int IsValidMD5(unsigned char * pbMd5);
-int IsValidSignature(unsigned char * pbSignature);
+int IsValidSignature(unsigned char * pbSignature, size_t cbSignatureSize);
 int VerifyDataBlockHash(void * pvDataBlock, uint32_t cbDataBlock, unsigned char * expected_md5);
 void CalculateDataBlockHash(void * pvDataBlock, uint32_t cbDataBlock, unsigned char * md5_hash);
 
