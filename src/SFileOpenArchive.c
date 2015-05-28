@@ -341,8 +341,9 @@ int EXPORT_SYMBOL SFileOpenArchive(
                 ha->UserDataPos = SearchOffset;
 
             /* Set the position of the MPQ header */
-            ha->pHeader = (TMPQHeader *)ha->HeaderData;
-            ha->MpqPos = SearchOffset;
+            ha->pHeader  = (TMPQHeader *)ha->HeaderData;
+            ha->MpqPos   = SearchOffset;
+            ha->FileSize = FileSize;
 
             /* Sector size must be nonzero. */
             if(SearchOffset >= FileSize || ha->pHeader->wSectorSize == 0)
@@ -395,14 +396,6 @@ int EXPORT_SYMBOL SFileOpenArchive(
     if(nError == ERROR_SUCCESS)
     {
         nError = BuildFileTable(ha);
-    }
-
-    /* We now have both hash table and block table loaded. */
-    /* If any malformation was detected in the MPQ, */
-    /* we perform hash table and block table validation (and eventual defragmentation) */
-    if(nError == ERROR_SUCCESS && ha->pHeader->wFormatVersion == MPQ_FORMAT_VERSION_1 && (ha->dwFlags & MPQ_FLAG_MALFORMED))
-    {
-        nError = ShrinkMalformedMpqTables(ha);
     }
 
     /* Load the internal listfile and include it to the file table */
@@ -540,7 +533,6 @@ int EXPORT_SYMBOL SFileSetDownloadCallback(void * hMpq, SFILE_DOWNLOAD_CALLBACK 
 
 int EXPORT_SYMBOL SFileFlushArchive(void * hMpq)
 {
-    TFileEntry * pFileEntry;
     TMPQArchive * ha;
     int nResultError = ERROR_SUCCESS;
     int nError;
@@ -558,44 +550,7 @@ int EXPORT_SYMBOL SFileFlushArchive(void * hMpq)
         /* Indicate that we are saving MPQ internal structures */
         ha->dwFlags |= MPQ_FLAG_SAVING_TABLES;
 
-        /*
-         * Invalidate entries for each internal file
-         */
-
-        if(ha->dwFlags & MPQ_FLAG_LISTFILE_INVALID)
-        {
-            pFileEntry = GetFileEntryExact(ha, LISTFILE_NAME, LANG_NEUTRAL);
-            if(pFileEntry != NULL)
-            {
-                DeleteFileEntry(ha, pFileEntry);
-                ha->dwReservedFiles++;
-            }
-        }
-
-        if(ha->dwFlags & MPQ_FLAG_ATTRIBUTES_INVALID)
-        {
-            pFileEntry = GetFileEntryExact(ha, ATTRIBUTES_NAME, LANG_NEUTRAL);
-            if(pFileEntry != NULL)
-            {
-                DeleteFileEntry(ha, pFileEntry);
-                ha->dwReservedFiles++;
-            }
-        }
-
-        if(ha->dwFlags & MPQ_FLAG_SIGNATURE_INVALID)
-        {
-            pFileEntry = GetFileEntryExact(ha, SIGNATURE_NAME, LANG_NEUTRAL);
-            if(pFileEntry != NULL)
-            {
-                DeleteFileEntry(ha, pFileEntry);
-                ha->dwReservedFiles++;
-            }
-        }
-
-        /*
-         * Defragment the file table. This will allow us to put the internal files to the end
-         */
-
+         /* Defragment the file table. This will allow us to put the internal files to the end */
         DefragmentFileTable(ha);
 
         /*
@@ -603,21 +558,21 @@ int EXPORT_SYMBOL SFileFlushArchive(void * hMpq)
          * Note that the (signature) file is usually before (listfile) in the file table
          */
 
-        if(ha->dwFlags & MPQ_FLAG_SIGNATURE_INVALID)
+        if(ha->dwFlags & MPQ_FLAG_SIGNATURE_NEW)
         {
             nError = SSignFileCreate(ha);
             if(nError != ERROR_SUCCESS)
                 nResultError = nError;
         }
 
-        if(ha->dwFlags & MPQ_FLAG_LISTFILE_INVALID)
+        if(ha->dwFlags & MPQ_FLAG_LISTFILE_NEW)
         {
             nError = SListFileSaveToMpq(ha);
             if(nError != ERROR_SUCCESS)
                 nResultError = nError;
         }
 
-        if(ha->dwFlags & MPQ_FLAG_ATTRIBUTES_INVALID)
+        if(ha->dwFlags & MPQ_FLAG_ATTRIBUTES_NEW)
         {
             nError = SAttrFileSaveToMpq(ha);
             if(nError != ERROR_SUCCESS)
@@ -627,6 +582,10 @@ int EXPORT_SYMBOL SFileFlushArchive(void * hMpq)
         /* Save HET table, BET table, hash table, block table, hi-block table */
         if(ha->dwFlags & MPQ_FLAG_CHANGED)
         {
+            /* Rebuild the HET table */
+            if(ha->pHetTable != NULL)
+                RebuildHetTable(ha);
+
             /* Save all MPQ tables first */
             nError = SaveMPQTables(ha);
             if(nError != ERROR_SUCCESS)

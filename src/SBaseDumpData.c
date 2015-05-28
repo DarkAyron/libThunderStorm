@@ -43,6 +43,26 @@ void DumpMpqHeader(TMPQHeader * pHeader)
     printf("-----------------------------------------------\n\n");
 }
 
+void DumpHashTable(TMPQHash * pHashTable, DWORD dwHashTableSize)
+{
+    uint32_t i;
+
+    if(pHashTable == NULL || dwHashTableSize == 0)
+        return;
+
+    printf("== Hash Table =================================\n");
+    for(i = 0; i < dwHashTableSize; i++)
+    {
+        printf("[%08x] %08X %08X %04X %04X %08X\n", i,
+                                                    pHashTable[i].dwName1,
+                                                    pHashTable[i].dwName2,
+                                                    pHashTable[i].lcLocale,
+                                                    pHashTable[i].wPlatform,
+                                                    pHashTable[i].dwBlockIndex);
+    }
+    printf("-----------------------------------------------\n\n");
+}
+
 void DumpHetAndBetTable(TMPQHetTable * pHetTable, TMPQBetTable * pBetTable)
 {
     uint32_t i;
@@ -51,14 +71,14 @@ void DumpHetAndBetTable(TMPQHetTable * pHetTable, TMPQBetTable * pBetTable)
         return;
 
     printf("== HET Header =================================\n");
-    printf("uint64_t      AndMask64         = %016llX\n", pHetTable->AndMask64);       
-    printf("uint64_t      OrMask64          = %016llX\n", pHetTable->OrMask64);        
+    printf("uint64_t      AndMask64         = %016llX\n",  pHetTable->AndMask64);       
+    printf("uint64_t      OrMask64          = %016llX\n",  pHetTable->OrMask64);        
+    printf("uint32_t      dwEntryCount      = %08X\n",     pHetTable->dwEntryCount);
+    printf("uint32_t      dwTotalCount      = %08X\n",     pHetTable->dwTotalCount);
+    printf("uint32_t      dwNameHashBitSize = %08X\n",     pHetTable->dwNameHashBitSize);
     printf("uint32_t      dwIndexSizeTotal  = %08X\n",     pHetTable->dwIndexSizeTotal);
     printf("uint32_t      dwIndexSizeExtra  = %08X\n",     pHetTable->dwIndexSizeExtra);
     printf("uint32_t      dwIndexSize       = %08X\n",     pHetTable->dwIndexSize);     
-    printf("uint32_t      dwEntryCount      = %08X\n",     pHetTable->dwEntryCount);
-    printf("uint32_t      dwTotalCount      = %08X\n",     pHetTable->dwTotalCount); 
-    printf("uint32_t      dwNameHashBitSize = %08X\n",     pHetTable->dwNameHashBitSize);   
     printf("-----------------------------------------------\n\n");
 
     printf("== BET Header =================================\n");
@@ -83,7 +103,7 @@ void DumpHetAndBetTable(TMPQHetTable * pHetTable, TMPQBetTable * pBetTable)
     printf("== HET & Bet Table ======================================================================\n\n");
     printf("HetIdx HetHash BetIdx BetHash          uint8_tOffset       FileSize CmpSize  FlgIdx Flags   \n");
     printf("------ ------- ------ ---------------- ---------------- -------- -------- ------ --------\n");
-    for(i = 0; i < pHetTable->dwHashTableSize; i++)
+    for(i = 0; i < pHetTable->dwTotalCount; i++)
     {
         uint64_t uint8_tOffset = 0;
         uint64_t BetHash = 0;
@@ -98,14 +118,14 @@ void DumpHetAndBetTable(TMPQHetTable * pHetTable, TMPQBetTable * pBetTable)
                                        &dwBetIndex,
                                         4);
         
-        if(dwBetIndex < pHetTable->dwMaxFileCount)
+        if(dwBetIndex < pHetTable->dwTotalCount)
         {
             uint32_t dwEntryIndex = pBetTable->dwTableEntrySize * dwBetIndex;
 
-            GetBits(pBetTable->pBetHashes, dwBetIndex * pBetTable->dwBetHashSizeTotal,
-                                           pBetTable->dwBetHashSize,
-                                          &BetHash,
-                                           8);
+            GetBits(pBetTable->pNameHashes, dwBetIndex * pBetTable->dwBitTotal_NameHash2,
+                                            pBetTable->dwBitCount_NameHash2,
+                                           &BetHash,
+                                            8);
 
             GetBits(pBetTable->pFileTable, dwEntryIndex + pBetTable->dwBitIndex_FilePos,
                                            pBetTable->dwBitCount_FilePos,
@@ -131,7 +151,7 @@ void DumpHetAndBetTable(TMPQHetTable * pHetTable, TMPQBetTable * pBetTable)
         }
 
         printf(" %04X    %02lX     %04X  %016llX %016llX %08X %08X  %04X  %08X\n", i,
-                                                         pHetTable->pHetHashes[i],
+                                                         pHetTable->pNameHashes[i],
                                                          dwBetIndex,
                                                          BetHash,
                                                          uint8_tOffset,

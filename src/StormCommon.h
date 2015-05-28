@@ -93,6 +93,7 @@ typedef struct _TMPQArchive
 
     uint64_t      UserDataPos;                 /* Position of user data (relative to the begin of the file) */
     uint64_t      MpqPos;                      /* MPQ header offset (relative to the begin of the file) */
+    uint64_t      FileSize;                    /* Size of the file at the moment of file open */
 
     struct _TMPQArchive * haPatch;              /* Pointer to patch archive, if any */
     struct _TMPQArchive * haBase;               /* Pointer to base ("previous version") archive, if any */
@@ -111,7 +112,6 @@ typedef struct _TMPQArchive
     uint32_t          dwHETBlockSize;
     uint32_t          dwBETBlockSize;
     uint32_t          dwMaxFileCount;              /* Maximum number of files in the MPQ. Also total size of the file table. */
-    uint32_t          dwHashTableSize;             /* Size of the hash table. Different from hash table size in the header if the hash table was shrunk */
     uint32_t          dwFileTableSize;             /* Current size of the file table, e.g. index of the entry past the last occupied one */
     uint32_t          dwReservedFiles;             /* Number of entries reserved for internal MPQ files (listfile, attributes) */
     uint32_t          dwSectorSize;                /* Default size of one file sector */
@@ -139,22 +139,22 @@ typedef struct _TMPQFile
 {
     TFileStream  * pStream;                     /* File stream. Only used on local files */
     TMPQArchive  * ha;                          /* Archive handle */
+    TMPQHash     * pHashEntry;                  /* Pointer to hash table entry, if the file was open using hash table */
     TFileEntry   * pFileEntry;                  /* File entry for the file */
-    uint32_t          dwFileKey;                   /* Decryption key */
-    uint32_t          dwFilePos;                   /* Current file position */
-    uint64_t      RawFilePos;                  /* Offset in MPQ archive (relative to file begin) */
-    uint64_t      MpqFilePos;                  /* Offset in MPQ archive (relative to MPQ header) */
-    uint32_t          dwMagic;                     /* 'FILE' */
+    uint64_t      RawFilePos;                   /* Offset in MPQ archive (relative to file begin) */
+    uint64_t      MpqFilePos;                   /* Offset in MPQ archive (relative to MPQ header) */
+    uint32_t          dwHashIndex;              /* Hash table index (0xFFFFFFFF if not used) */
+    uint32_t          dwFileKey;                /* Decryption key */
+    uint32_t          dwFilePos;                /* Current file position */
+    uint32_t          dwMagic;                  /* 'FILE' */
 
     struct _TMPQFile * hfPatch;                 /* Pointer to opened patch file */
-    TPatchHeader * pPatchHeader;                /* Patch header. Only used if the file is a patch file */
-    uint8_t *         pbFileData;                  /* Data of the file (single unit files, patched files) */
-    uint32_t          cbFileData;                  /* Size of file data */
-    uint8_t           FileDataMD5[MD5_DIGEST_SIZE];/* MD5 hash of the loaded file data. Used during patch process */
 
     TPatchInfo   * pPatchInfo;                  /* Patch info block, preceding the sector table */
-    uint32_t        * SectorOffsets;               /* Position of each file sector, relative to the begin of the file. Only for compressed files. */
-    uint32_t        * SectorChksums;               /* Array of sector checksums (either ADLER32 or MD5) values for each file sector */
+    uint32_t     * SectorOffsets;               /* Position of each file sector, relative to the begin of the file. Only for compressed files. */
+    uint32_t     * SectorChksums;               /* Array of sector checksums (either ADLER32 or MD5) values for each file sector */
+    uint8_t      * pbFileData;                  /* Data of the file (single unit files, patched files) */
+    uint32_t       cbFileData;                  /* Size of file data */
     uint32_t          dwCompression0;              /* Compression that will be used on the first file sector */
     uint32_t          dwSectorCount;               /* Number of sectors in the file */
     uint32_t          dwPatchedFileSize;           /* Size of patched file. Used when saving patch file to the MPQ */
@@ -213,6 +213,7 @@ typedef struct _MPQ_SIGNATURE_INFO
  */
 
 #define STORM_ALLOC(type, nitems) (type *)malloc((nitems) * sizeof(type))
+#define STORM_REALLOC(type, ptr, nitems) (type *)realloc(ptr, ((nitems) * sizeof(type)))
 #define STORM_FREE(ptr)           free(ptr)
 
 /*-----------------------------------------------------------------------------
@@ -286,7 +287,7 @@ int ConvertMpqHeaderToFormat4(TMPQArchive * ha, uint64_t MpqOffset, uint64_t Fil
 TMPQHash * FindFreeHashEntry(TMPQArchive * ha, uint32_t dwStartIndex, uint32_t dwName1, uint32_t dwName2, uint32_t lcLocale);
 TMPQHash * GetFirstHashEntry(TMPQArchive * ha, const char * szFileName);
 TMPQHash * GetNextHashEntry(TMPQArchive * ha, TMPQHash * pFirstHash, TMPQHash * pPrevHash);
-TMPQHash * AllocateHashEntry(TMPQArchive * ha, TFileEntry * pFileEntry);
+TMPQHash * AllocateHashEntry(TMPQArchive * ha, TFileEntry * pFileEntry, uint32_t lcLocale);
 
 TMPQExtHeader * LoadExtTable(TMPQArchive * ha, uint64_t ByteOffset, size_t Size, uint32_t dwSignature, uint32_t dwKey);
 TMPQHetTable * LoadHetTable(TMPQArchive * ha);
@@ -302,9 +303,10 @@ int  CreateHashTable(TMPQArchive * ha, uint32_t dwHashTableSize);
 int  LoadAnyHashTable(TMPQArchive * ha);
 int  BuildFileTable(TMPQArchive * ha);
 int  DefragmentFileTable(TMPQArchive * ha);
-int  ShrinkMalformedMpqTables(TMPQArchive * ha);
+
+int  CreateFileTable(TMPQArchive * ha, uint32_t dwFileTableSize);
 int  RebuildHetTable(TMPQArchive * ha);
-int  RebuildFileTable(TMPQArchive * ha, uint32_t dwNewHashTableSize, uint32_t dwNewMaxFileCount);
+int  RebuildFileTable(TMPQArchive * ha, uint32_t dwNewHashTableSize);
 int  SaveMPQTables(TMPQArchive * ha);
 
 TMPQHetTable * CreateHetTable(uint32_t dwEntryCount, uint32_t dwTotalCount, uint32_t dwHashBitSize, unsigned char * pbSrcData);
@@ -314,18 +316,17 @@ TMPQBetTable * CreateBetTable(uint32_t dwMaxFileCount);
 void FreeBetTable(TMPQBetTable * pBetTable);
 
 /* Functions for finding files in the file table */
-TFileEntry * GetFileEntryAny(TMPQArchive * ha, const char * szFileName);
+TFileEntry * GetFileEntryLocale2(TMPQArchive * ha, const char * szFileName, uint32_t lcLocale, uint32_t * PtrHashIndex);
 TFileEntry * GetFileEntryLocale(TMPQArchive * ha, const char * szFileName, uint32_t lcLocale);
-TFileEntry * GetFileEntryExact(TMPQArchive * ha, const char * szFileName, uint32_t lcLocale);
-TFileEntry * GetFileEntryByIndex(TMPQArchive * ha, uint32_t dwIndex);
+TFileEntry * GetFileEntryExact(TMPQArchive * ha, const char * szFileName, uint32_t lcLocale, uint32_t * PtrHashIndex);
 
 /* Allocates file name in the file entry */
 void AllocateFileName(TMPQArchive * ha, TFileEntry * pFileEntry, const char * szFileName);
 
 /* Allocates new file entry in the MPQ tables. Reuses existing, if possible */
-TFileEntry * AllocateFileEntry(TMPQArchive * ha, const char * szFileName, uint32_t lcLocale);
-int  RenameFileEntry(TMPQArchive * ha, TFileEntry * pFileEntry, const char * szNewFileName);
-void DeleteFileEntry(TMPQArchive * ha, TFileEntry * pFileEntry);
+TFileEntry * AllocateFileEntry(TMPQArchive * ha, const char * szFileName, uint32_t lcLocale, uint32_t * PtrHashIndex);
+int  RenameFileEntry(TMPQArchive * ha, TMPQFile * hf, const char * szNewFileName);
+int  DeleteFileEntry(TMPQArchive * ha, TMPQFile * hf);
 
 /* Invalidates entries for (listfile) and (attributes) */
 void InvalidateInternalFiles(TMPQArchive * ha);
@@ -363,11 +364,28 @@ int  WriteSectorChecksums(TMPQFile * hf);
 int  WriteMemDataMD5(TFileStream * pStream, uint64_t RawDataOffs, void * pvRawData, uint32_t dwRawDataSize, uint32_t dwChunkSize, uint32_t * pcbTotalSize);
 int  WriteMpqDataMD5(TFileStream * pStream, uint64_t RawDataOffs, uint32_t dwRawDataSize, uint32_t dwChunkSize);
 void FreeFileHandle(TMPQFile ** hf);
+void FreeArchiveHandle(TMPQArchive ** ha);
+
+/*-----------------------------------------------------------------------------
+ * Patch functions
+ */
+
+/* Structure used for the patching process */
+typedef struct _TMPQPatcher
+{
+    uint8_t this_md5[MD5_DIGEST_SIZE];             /* MD5 of the current file state */
+    uint8_t * pbFileData1;                         /* Primary working buffer */
+    uint8_t * pbFileData2;                         /* Secondary working buffer */
+    uint32_t cbMaxFileData;                        /* Maximum allowed size of the patch data */
+    uint32_t cbFileData;                           /* Current size of the result data */
+    uint32_t nCounter;                             /* Counter of the patch process */
+
+} TMPQPatcher;
 
 int IsIncrementalPatchFile(const void * pvData, uint32_t cbData, uint32_t * pdwPatchedFileSize);
-int  PatchFileData(TMPQFile * hf);
-
-void FreeArchiveHandle(TMPQArchive ** ha);
+int Patch_InitPatcher(TMPQPatcher * pPatcher, TMPQFile * hf);
+int Patch_Process(TMPQPatcher * pPatcher, TMPQFile * hf);
+void Patch_Finalize(TMPQPatcher * pPatcher);
 
 /*-----------------------------------------------------------------------------
  * Utility functions
@@ -383,7 +401,7 @@ void CopyFileName(char * szTarget, const char * szSource, size_t cchLength);
 void CopyFileName(char * szTarget, const char * szSource, size_t cchLength);
 
 /*-----------------------------------------------------------------------------
- * Support for adding files to the MPQ
+ * Internal support for MPQ modifications
  */
 
 int SFileAddFile_Init(
@@ -432,12 +450,17 @@ int SSignFileFinish(TMPQArchive * ha);
  */
 
 #ifdef _STORMLIB_DUMP_DATA
+
 void DumpMpqHeader(TMPQHeader * pHeader);
+void DumpHashTable(TMPQHash * pHashTable, DWORD dwHashTableSize);
 void DumpHetAndBetTable(TMPQHetTable * pHetTable, TMPQBetTable * pBetTable);
 
 #else
+
 #define DumpMpqHeader(h)           /* */
+#define DumpHashTable(h, s)        /* */
 #define DumpHetAndBetTable(h, b)   /* */
+
 #endif
 
 #endif /* _STORMCOMMON_H */

@@ -36,29 +36,29 @@ typedef struct _MPQ_ATTRIBUTES_HEADER
  * Local functions
  */
 
-static uint32_t GetSizeOfAttributesFile(uint32_t dwAttrFlags, uint32_t dwFileTableSize)
+static uint32_t GetSizeOfAttributesFile(uint32_t dwAttrFlags, uint32_t dwBlockTableSize)
 {
     uint32_t cbAttrFile = sizeof(MPQ_ATTRIBUTES_HEADER);
 
     /* Calculate size of the (attributes) file */
     if(dwAttrFlags & MPQ_ATTRIBUTE_CRC32)
-        cbAttrFile += dwFileTableSize * sizeof(uint32_t);
+        cbAttrFile += dwBlockTableSize * sizeof(uint32_t);
     if(dwAttrFlags & MPQ_ATTRIBUTE_FILETIME)
-        cbAttrFile += dwFileTableSize * sizeof(uint64_t);
+        cbAttrFile += dwBlockTableSize * sizeof(uint64_t);
     if(dwAttrFlags & MPQ_ATTRIBUTE_MD5)
-        cbAttrFile += dwFileTableSize * MD5_DIGEST_SIZE;
+        cbAttrFile += dwBlockTableSize * MD5_DIGEST_SIZE;
 
     /* The bit array has been created without the last bit belonging to (attributes) */
     /* When the number of files is a multiplier of 8 plus one, then the size of (attributes) */
     /* if 1 byte less than expected. */
     /* Example: wow-update-13164.MPQ: BlockTableSize = 0x62E1, but there's only 0xC5C bytes */
     if(dwAttrFlags & MPQ_ATTRIBUTE_PATCH_BIT)
-        cbAttrFile += (dwFileTableSize + 6) / 8;
+        cbAttrFile += (dwBlockTableSize + 6) / 8;
 
     return cbAttrFile;
 }
 
-static uint32_t CheckSizeOfAttributesFile(uint32_t cbAttrFile, uint32_t dwAttrFlags, uint32_t dwFileTableSize)
+static uint32_t CheckSizeOfAttributesFile(uint32_t cbAttrFile, uint32_t dwAttrFlags, uint32_t dwBlockTableSize)
 {
     uint32_t cbHeaderSize = sizeof(MPQ_ATTRIBUTES_HEADER);
     uint32_t cbChecksumSize1 = 0;
@@ -89,21 +89,21 @@ static uint32_t CheckSizeOfAttributesFile(uint32_t cbAttrFile, uint32_t dwAttrFl
     /* Get the expected size of CRC32 array */
     if(dwAttrFlags & MPQ_ATTRIBUTE_CRC32)
     {
-        cbChecksumSize1 += dwFileTableSize * sizeof(uint32_t);
+        cbChecksumSize1 += dwBlockTableSize * sizeof(uint32_t);
         cbChecksumSize2 += cbChecksumSize1 - sizeof(uint32_t);
     }
 
     /* Get the expected size of FILETIME array */
     if(dwAttrFlags & MPQ_ATTRIBUTE_FILETIME)
     {
-        cbFileTimeSize1 += dwFileTableSize * sizeof(uint64_t);
+        cbFileTimeSize1 += dwBlockTableSize * sizeof(uint64_t);
         cbFileTimeSize2 += cbFileTimeSize1 - sizeof(uint64_t);
     }
 
     /* Get the expected size of MD5 array */
     if(dwAttrFlags & MPQ_ATTRIBUTE_MD5)
     {
-        cbFileHashSize1 += dwFileTableSize * MD5_DIGEST_SIZE;
+        cbFileHashSize1 += dwBlockTableSize * MD5_DIGEST_SIZE;
         cbFileHashSize2 += cbFileHashSize1 - MD5_DIGEST_SIZE;
     }
 
@@ -111,26 +111,26 @@ static uint32_t CheckSizeOfAttributesFile(uint32_t cbAttrFile, uint32_t dwAttrFl
     if(dwAttrFlags & MPQ_ATTRIBUTE_PATCH_BIT)
     {
         cbPatchBitSize1 =
-        cbPatchBitSize2 = ((dwFileTableSize + 6) / 8);
-        cbPatchBitSize3 = dwFileTableSize * sizeof(uint32_t);
+        cbPatchBitSize2 = ((dwBlockTableSize + 6) / 8);
+        cbPatchBitSize3 = dwBlockTableSize * sizeof(uint32_t);
     }
 
     /* Check if the (attributes) file entry count is equal to our file table size */
     if(cbAttrFile == (cbHeaderSize + cbChecksumSize1 + cbFileTimeSize1 + cbFileHashSize1 + cbPatchBitSize1))
-        return dwFileTableSize;
+        return dwBlockTableSize;
 
     /* Check if the (attributes) file entry count is equal to our file table size minus one */
     if(cbAttrFile == (cbHeaderSize + cbChecksumSize2 + cbFileTimeSize2 + cbFileHashSize2 + cbPatchBitSize2))
-        return dwFileTableSize - 1;
+        return dwBlockTableSize - 1;
 
     /* Zenith.SC2MAP has the MPQ_ATTRIBUTE_PATCH_BIT set, but the bit array is missing */
     if(cbAttrFile == (cbHeaderSize + cbChecksumSize1 + cbFileTimeSize1 + cbFileHashSize1))
-        return dwFileTableSize;
+        return dwBlockTableSize;
 
     /* interface.MPQ.part (WoW build 10958) has the MPQ_ATTRIBUTE_PATCH_BIT set */
     /* but there's an array of uint32_ts (filled with zeros) instead of array of bits */
     if(cbAttrFile == (cbHeaderSize + cbChecksumSize1 + cbFileTimeSize1 + cbFileHashSize1 + cbPatchBitSize3))
-        return dwFileTableSize;
+        return dwBlockTableSize;
 
 #ifdef __STORMLIB_TEST__
     /* Invalid size of the (attributes) file */
@@ -248,12 +248,11 @@ static int LoadAttributesFile(TMPQArchive * ha, unsigned char * pbAttrFile, uint
 static unsigned char * CreateAttributesFile(TMPQArchive * ha, uint32_t * pcbAttrFile)
 {
     PMPQ_ATTRIBUTES_HEADER pAttrHeader;
-    TFileEntry * pFileTableEnd = ha->pFileTable + ha->dwFileTableSize;
+    TFileEntry * pFileTableEnd = ha->pFileTable + ha->pHeader->dwBlockTableSize;
     TFileEntry * pFileEntry;
     unsigned char * pbAttrFile;
     unsigned char * pbAttrPtr;
     size_t cbAttrFile;
-    uint32_t dwFinalEntries = ha->dwFileTableSize + ha->dwReservedFiles;
 
     /* Check if we need patch bits in the (attributes) file */
     for(pFileEntry = ha->pFileTable; pFileEntry < pFileTableEnd; pFileEntry++)
@@ -267,7 +266,7 @@ static unsigned char * CreateAttributesFile(TMPQArchive * ha, uint32_t * pcbAttr
 
     /* Allocate the buffer for holding the entire (attributes) */
     /* Allocate 1 byte more (See GetSizeOfAttributesFile for more info) */
-    cbAttrFile = GetSizeOfAttributesFile(ha->dwAttrFlags, dwFinalEntries);
+    cbAttrFile = GetSizeOfAttributesFile(ha->dwAttrFlags, ha->pHeader->dwBlockTableSize);
     pbAttrFile = pbAttrPtr = STORM_ALLOC(uint8_t, cbAttrFile + 1);
     if(pbAttrFile != NULL)
     {
@@ -289,8 +288,8 @@ static unsigned char * CreateAttributesFile(TMPQArchive * ha, uint32_t * pcbAttr
             for(pFileEntry = ha->pFileTable; pFileEntry < pFileTableEnd; pFileEntry++)
                 *pArrayCRC32++ = BSWAP_INT32_UNSIGNED(pFileEntry->dwCrc32);
 
-            /* Skip the reserved entries */
-            pbAttrPtr = (unsigned char *)(pArrayCRC32 + ha->dwReservedFiles);
+            /* Update pointer */
+            pbAttrPtr = (unsigned char *)pArrayCRC32;
         }
 
         /* Write the array of file time */
@@ -302,8 +301,8 @@ static unsigned char * CreateAttributesFile(TMPQArchive * ha, uint32_t * pcbAttr
             for(pFileEntry = ha->pFileTable; pFileEntry < pFileTableEnd; pFileEntry++)
                 *pArrayFileTime++ = BSWAP_INT64_UNSIGNED(pFileEntry->FileTime);
 
-            /* Skip the reserved entries */
-            pbAttrPtr = (unsigned char *)(pArrayFileTime + ha->dwReservedFiles);
+            /* Update pointer */
+            pbAttrPtr = (unsigned char *)pArrayFileTime;
         }
 
         /* Write the array of MD5s */
@@ -318,8 +317,8 @@ static unsigned char * CreateAttributesFile(TMPQArchive * ha, uint32_t * pcbAttr
                 pbArrayMD5 += MD5_DIGEST_SIZE;
             }
 
-            /* Skip the reserved items */
-            pbAttrPtr = pbArrayMD5 + (ha->dwReservedFiles * MD5_DIGEST_SIZE);
+            /* Update pointer */
+            pbAttrPtr = pbArrayMD5;
         }
 
         /* Write the array of patch bits */
@@ -341,12 +340,8 @@ static unsigned char * CreateAttributesFile(TMPQArchive * ha, uint32_t * pcbAttr
                 dwBitMask = (dwBitMask << 0x07) | (dwBitMask >> 0x01);
             }
 
-            /* Having incremented the bit array just by the number of items in the file table */
-            /* will create the bit array one byte less of the number of files is a multiplier of 8). */
-            /* Blizzard MPQs have the same feature. */
-
             /* Move past the bit array */
-            pbAttrPtr = (pbBitArray + dwByteIndex) + ((dwBitMask & 0x7F) ? 1 : 0);
+            pbAttrPtr += (ha->pHeader->dwBlockTableSize + 6) / 8;
         }
 
         /* Now we expect that current position matches the estimated size */
@@ -422,7 +417,7 @@ int SAttrFileSaveToMpq(TMPQArchive * ha)
     if(ha->dwFileFlags2 != 0)
     {
         /* At this point, we expect to have at least one reserved entry in the file table */
-        assert(ha->dwFlags & MPQ_FLAG_ATTRIBUTES_INVALID);
+        assert(ha->dwFlags & MPQ_FLAG_ATTRIBUTES_NEW);
         assert(ha->dwReservedFiles > 0);
 
         /* Create the raw data that is to be written to (attributes) */
@@ -454,6 +449,10 @@ int SAttrFileSaveToMpq(TMPQArchive * ha)
                 SFileAddFile_Finish(hf);
             }
 
+            /* Clear the number of reserved files */
+            ha->dwFlags &= ~(MPQ_FLAG_ATTRIBUTES_NEW | MPQ_FLAG_ATTRIBUTES_NONE);
+            ha->dwReservedFiles--;
+
             /* Free the attributes buffer */
             STORM_FREE(pbAttrFile);
         }
@@ -462,10 +461,6 @@ int SAttrFileSaveToMpq(TMPQArchive * ha)
             /* If the (attributes) file would be empty, its OK */
             nError = (cbAttrFile == 0) ? ERROR_SUCCESS : ERROR_NOT_ENOUGH_MEMORY;
         }
-
-        /* Clear the number of reserved files */
-        ha->dwFlags &= ~MPQ_FLAG_ATTRIBUTES_INVALID;
-        ha->dwReservedFiles--;
     }
     
     return nError;

@@ -221,7 +221,6 @@ static TFileEntry * FindPatchEntry(TMPQArchive * ha, TFileEntry * pFileEntry)
     TFileEntry * pPatchEntry = NULL;
     TFileEntry * pTempEntry;
     char szFileName[MAX_PATH];
-    uint32_t lcLocale = pFileEntry->lcLocale;
 
     /* Go while there are patches */
     while(ha->haPatch != NULL)
@@ -236,7 +235,7 @@ static TFileEntry * FindPatchEntry(TMPQArchive * ha, TFileEntry * pFileEntry)
         strcat(szFileName, pFileEntry->szFileName);
 
         /* Try to find the file there */
-        pTempEntry = GetFileEntryExact(ha, szFileName, lcLocale);
+        pTempEntry = GetFileEntryExact(ha, szFileName, 0, NULL);
         if(pTempEntry != NULL)
             pPatchEntry = pTempEntry;
     }
@@ -254,7 +253,7 @@ static int DoMPQSearch(TMPQSearch * hs, SFILE_FIND_DATA * lpFindFileData)
     TFileEntry * pFileEntry;
     const char * szFileName;
     void * hFile;
-    char szPseudoName[20];
+    char szNameBuff[MAX_PATH];
     uint32_t dwBlockIndex;
     size_t nPrefixLength;
 
@@ -296,11 +295,11 @@ static int DoMPQSearch(TMPQSearch * hs, SFILE_FIND_DATA * lpFindFileData)
                     if(szFileName == NULL)
                     {
                         /* Open the file by its pseudo-name. */
-                        /* This also generates the file name with a proper extension */
-                        sprintf(szPseudoName, "File%08u.xxx", (unsigned int)dwBlockIndex);
-                        if(SFileOpenFileEx((void *)hs->ha, szPseudoName, SFILE_OPEN_BASE_FILE, &hFile))
+                        sprintf(szNameBuff, "File%08u.xxx", (unsigned int)dwBlockIndex);
+                        if(SFileOpenFileEx((void *)hs->ha, szNameBuff, SFILE_OPEN_BASE_FILE, &hFile))
                         {
-                            szFileName = (pFileEntry->szFileName != NULL) ? pFileEntry->szFileName : szPseudoName;
+                            SFileGetFileName(hFile, szNameBuff);
+                            szFileName = szNameBuff;
                             SFileCloseFile(hFile);
                         }
                     }
@@ -312,12 +311,11 @@ static int DoMPQSearch(TMPQSearch * hs, SFILE_FIND_DATA * lpFindFileData)
                         if(CheckWildCard(szFileName + nPrefixLength, hs->szSearchMask))
                         {
                             /* Fill the found entry. hash entry and block index are taken from the base MPQ */
-                            lpFindFileData->dwHashIndex  = pFileEntry->dwHashIndex;
                             lpFindFileData->dwBlockIndex = dwBlockIndex;
                             lpFindFileData->dwFileSize   = pPatchEntry->dwFileSize;
                             lpFindFileData->dwFileFlags  = pPatchEntry->dwFlags;
                             lpFindFileData->dwCompSize   = pPatchEntry->dwCmpSize;
-                            lpFindFileData->lcLocale     = pPatchEntry->lcLocale;
+                            lpFindFileData->lcLocale     = 0; /* pPatchEntry->lcLocale; */
 
                             /* Fill the filetime */
                             lpFindFileData->dwFileTimeHi = (uint32_t)(pPatchEntry->FileTime >> 32);

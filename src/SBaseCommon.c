@@ -97,7 +97,7 @@ unsigned char AsciiToUpperTable_Slash[256] =
 
 #define STORM_BUFFER_SIZE       0x500
 
-#define HASH_INDEX_MASK(ha) (ha->dwHashTableSize ? (ha->dwHashTableSize - 1) : 0)
+#define HASH_INDEX_MASK(ha) (ha->pHeader->dwHashTableSize ? (ha->pHeader->dwHashTableSize - 1) : 0)
 
 static uint32_t StormBuffer[STORM_BUFFER_SIZE];    /* Buffer for the decryption engine */
 static int  bMpqCryptographyInitialized = 0;
@@ -745,7 +745,8 @@ TMPQHash * GetNextHashEntry(TMPQArchive * ha, TMPQHash * pFirstHash, TMPQHash * 
 /* Allocates an entry in the hash table */
 TMPQHash * AllocateHashEntry(
     TMPQArchive * ha,
-    TFileEntry * pFileEntry)
+    TFileEntry * pFileEntry,
+    uint32_t lcLocale)
 {
     TMPQHash * pHash;
     uint32_t dwStartIndex = ha->pfnHashString(pFileEntry->szFileName, MPQ_HASH_TABLE_INDEX);
@@ -753,18 +754,15 @@ TMPQHash * AllocateHashEntry(
     uint32_t dwName2 = ha->pfnHashString(pFileEntry->szFileName, MPQ_HASH_NAME_B);
 
     /* Attempt to find a free hash entry */
-    pHash = FindFreeHashEntry(ha, dwStartIndex, dwName1, dwName2, pFileEntry->lcLocale);
+    pHash = FindFreeHashEntry(ha, dwStartIndex, dwName1, dwName2, lcLocale);
     if(pHash != NULL)
     {
         /* Fill the free hash entry */
         pHash->dwName1      = dwName1;
         pHash->dwName2      = dwName2;
-        pHash->lcLocale     = pFileEntry->lcLocale;
-        pHash->wPlatform    = pFileEntry->wPlatform;
+        pHash->lcLocale     = (uint16_t)lcLocale;
+        pHash->wPlatform    = 0;
         pHash->dwBlockIndex = (uint32_t)(pFileEntry - ha->pFileTable);
-
-        /* Fill the hash index in the file entry */
-        pFileEntry->dwHashIndex = (uint32_t)(pHash - ha->pHashTable);
     }
 
     return pHash;
@@ -1531,8 +1529,6 @@ void FreeFileHandle(TMPQFile ** hf)
         /* Then free all buffers allocated in the file structure */
         if((*hf)->pbFileData != NULL)
             STORM_FREE((*hf)->pbFileData);
-        if((*hf)->pPatchHeader != NULL)
-            STORM_FREE((*hf)->pPatchHeader);
         if((*hf)->pPatchInfo != NULL)
             STORM_FREE((*hf)->pPatchInfo);
         if((*hf)->SectorOffsets != NULL)

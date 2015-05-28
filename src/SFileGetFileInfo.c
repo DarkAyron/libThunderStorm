@@ -146,7 +146,6 @@ int EXPORT_SYMBOL SFileGetFileInfo(
     TFileEntry * pFileEntry = NULL;
     uint64_t Int64Value = 0;
     uint64_t ByteOffset = 0;
-    TMPQHash * pHash;
     TMPQFile * hf = NULL;
     void * pvSrcFileInfo = NULL;
     uint32_t cbSrcFileInfo = 0;
@@ -379,7 +378,7 @@ int EXPORT_SYMBOL SFileGetFileInfo(
             if(ha != NULL && ha->pHashTable != NULL)
             {
                 pvSrcFileInfo = ha->pHashTable;
-                cbSrcFileInfo = ha->dwHashTableSize * sizeof(TMPQHash);
+                cbSrcFileInfo = ha->pHeader->dwHashTableSize * sizeof(TMPQHash);
                 nInfoType = SFILE_INFO_TYPE_DIRECT_POINTER;
             }
             break;
@@ -632,9 +631,9 @@ int EXPORT_SYMBOL SFileGetFileInfo(
 
         case SFileInfoHashEntry:
             hf = IsValidFileHandle(hMpqOrFile);
-            if(hf != NULL && hf->ha != NULL && hf->ha->pHashTable != NULL)
+            if(hf != NULL && hf->pHashEntry != NULL)
             {
-                pvSrcFileInfo = hf->ha->pHashTable + hf->pFileEntry->dwHashIndex;
+                pvSrcFileInfo = hf->pHashEntry;
                 cbSrcFileInfo = sizeof(TMPQHash);
                 nInfoType = SFILE_INFO_TYPE_DIRECT_POINTER;
             }
@@ -642,9 +641,9 @@ int EXPORT_SYMBOL SFileGetFileInfo(
 
         case SFileInfoHashIndex:
             hf = IsValidFileHandle(hMpqOrFile);
-            if(hf != NULL && hf->pFileEntry != NULL)
+            if(hf != NULL && hf->pHashEntry != NULL)
             {
-                pvSrcFileInfo = &hf->pFileEntry->dwHashIndex;
+                pvSrcFileInfo = &hf->dwHashIndex;
                 cbSrcFileInfo = sizeof(uint32_t);
                 nInfoType = SFILE_INFO_TYPE_DIRECT_POINTER;
             }
@@ -652,10 +651,10 @@ int EXPORT_SYMBOL SFileGetFileInfo(
 
         case SFileInfoNameHash1:
             hf = IsValidFileHandle(hMpqOrFile);
-            if(hf != NULL && hf->ha != NULL && hf->ha->pHashTable != NULL)
+            if(hf != NULL && hf->pHashEntry != NULL)
             {
-                pHash = hf->ha->pHashTable + hf->pFileEntry->dwHashIndex;
-                pvSrcFileInfo = &pHash->dwName1;
+                dwInt32Value = hf->pHashEntry->dwName1;
+                pvSrcFileInfo = &dwInt32Value;
                 cbSrcFileInfo = sizeof(uint32_t);
                 nInfoType = SFILE_INFO_TYPE_DIRECT_POINTER;
             }
@@ -663,10 +662,10 @@ int EXPORT_SYMBOL SFileGetFileInfo(
 
         case SFileInfoNameHash2:
             hf = IsValidFileHandle(hMpqOrFile);
-            if(hf != NULL && hf->ha != NULL && hf->ha->pHashTable != NULL)
+            if(hf != NULL && hf->pHashEntry != NULL)
             {
-                pHash = hf->ha->pHashTable + hf->pFileEntry->dwHashIndex;
-                pvSrcFileInfo = &pHash->dwName2;
+                dwInt32Value = hf->pHashEntry->dwName2;
+                pvSrcFileInfo = &dwInt32Value;
                 cbSrcFileInfo = sizeof(uint32_t);
                 nInfoType = SFILE_INFO_TYPE_DIRECT_POINTER;
             }
@@ -684,9 +683,9 @@ int EXPORT_SYMBOL SFileGetFileInfo(
 
         case SFileInfoLocale:
             hf = IsValidFileHandle(hMpqOrFile);
-            if(hf != NULL && hf->pFileEntry != NULL)
+            if(hf != NULL && hf->pHashEntry != NULL)
             {
-                dwInt32Value = hf->pFileEntry->lcLocale;
+                dwInt32Value = hf->pHashEntry->lcLocale;
                 pvSrcFileInfo = &dwInt32Value;
                 cbSrcFileInfo = sizeof(uint32_t);
                 nInfoType = SFILE_INFO_TYPE_DIRECT_POINTER;
@@ -956,10 +955,6 @@ int EXPORT_SYMBOL SFileGetFileName(void * hFile, char * szFileName)
     TMPQFile * hf = (TMPQFile *)hFile;  /* MPQ File handle */
     int nError = ERROR_INVALID_HANDLE;
 
-    /* Pre-zero the output buffer */
-    if(szFileName != NULL)
-        *szFileName = 0;
-
     /* Check valid parameters */
     if(IsValidFileHandle(hFile))
     {
@@ -972,15 +967,11 @@ int EXPORT_SYMBOL SFileGetFileName(void * hFile, char * szFileName)
             {
                 /* If the file name is not there yet, create a pseudo name */
                 if(pFileEntry->szFileName == NULL)
-                {
                     nError = CreatePseudoFileName(hFile, pFileEntry, szFileName);
-                }
-                else
-                {
-                    if(szFileName != NULL)
-                        strcpy(szFileName, pFileEntry->szFileName);
-                    nError = ERROR_SUCCESS;
-                }
+
+                /* Copy the file name to the output buffer, if any */
+                if(pFileEntry->szFileName && szFileName)
+                    strcpy(szFileName, pFileEntry->szFileName);
             }
         }
 

@@ -416,10 +416,7 @@ static void RemoveItem(THTreeItem_t * treeItem)
 
 void huffTree_init(THuffmannTree * huffTree, int bCompression)
 {
-    /* TODO: Obsolete, delete this!! */
-/*  InitializeHTListHead(&ItemLinks); */
     huffTree->pFirst = huffTree->pLast = LIST_HEAD();
- 
     huffTree->MinValidValue = 1;
     huffTree->ItemsUsed = 0;
  
