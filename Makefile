@@ -351,5 +351,5 @@ $(OBJS): %.o: %.s
 
 install: $(SO)
 	install $(SO) /usr/local/lib
-	cp src/thunderStorm.h /usr/local/include/thunderStorm
+	cp src/thunderStorm.h /usr/local/include/thunderStorm.h
 	ldconfig
