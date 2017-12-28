@@ -208,7 +208,10 @@ int EXPORT_SYMBOL SFileCreateArchive2(const char * szMpqName, PSFILE_CREATE_MPQ 
     if(nError == ERROR_SUCCESS)
     {
         memset(ha, 0, sizeof(TMPQArchive));
-        ha->pfnHashString   = HashString;
+        if (dwMpqFlags & MPQ_FLAG_FILENAME_UNIX)
+            ha->pfnHashString = HashStringCS;
+        else
+            ha->pfnHashString  = HashString;
         ha->pStream         = pStream;
         ha->dwSectorSize    = pCreateInfo->dwSectorSize;
         ha->UserDataPos     = MpqPos;
