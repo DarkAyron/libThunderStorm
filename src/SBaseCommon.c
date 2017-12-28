@@ -161,6 +161,26 @@ uint32_t HashString(const char * szFileName, uint32_t dwHashType)
     return dwSeed1;
 }
 
+uint32_t HashStringCS(const char * szFileName, uint32_t dwHashType)
+{
+    unsigned char * pbKey   = (uint8_t *)szFileName;
+    uint32_t  dwSeed1 = 0x7FED7FED;
+    uint32_t  dwSeed2 = 0xEEEEEEEE;
+    uint32_t  ch;
+
+    while(*pbKey != 0)
+    {
+        /* DON'T convert the input character to uppercase */
+        /* DON'T convert slash (0x2F) to backslash (0x5C) */
+        ch = *pbKey++;
+
+        dwSeed1 = StormBuffer[dwHashType + ch] ^ (dwSeed1 + dwSeed2);
+        dwSeed2 = ch + dwSeed1 + dwSeed2 + (dwSeed2 << 5) + 3;
+    }
+
+    return dwSeed1;
+}
+
 uint32_t HashStringSlash(const char * szFileName, uint32_t dwHashType)
 {
     unsigned char * pbKey   = (uint8_t *)szFileName;
@@ -239,6 +259,39 @@ uint64_t HashStringJenkins(const char * szFileName)
         szTemp = szLocFileName;
         while(*pbFileName != 0)
             *szTemp++ = (char)AsciiToLowerTable[*pbFileName++];
+        *szTemp = 0;
+
+        nLength = szTemp - szLocFileName;
+    }
+
+    /* Thanks Quantam for finding out what the algorithm is.
+     * I am really getting old for reversing large chunks of assembly
+     * that does hashing :-) */
+    hashlittle2(szLocFileName, nLength, &secondary_hash, &primary_hash);
+
+    /* Combine those 2 together */
+    return (uint64_t)primary_hash * (uint64_t)0x100000000ULL + (uint64_t)secondary_hash;
+}
+
+/*-----------------------------------------------------------------------------
+ * Calculates a Jenkin's Encrypting and decrypting MPQ file data
+ * Case-senisitive version for *nix-systems
+ */
+
+uint64_t HashStringJenkinsCS(const char * szFileName)
+{
+    unsigned char * pbFileName = (unsigned char *)szFileName;
+    char * szTemp;
+    char szLocFileName[0x108];
+    size_t nLength = 0;
+    unsigned int primary_hash = 1;
+    unsigned int secondary_hash = 2;
+
+    if(pbFileName != NULL)
+    {
+        szTemp = szLocFileName;
+        while(*pbFileName != 0)
+            *szTemp++ = (char)*pbFileName++;
         *szTemp = 0;
 
         nLength = szTemp - szLocFileName;

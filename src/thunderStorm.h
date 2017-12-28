@@ -92,6 +92,7 @@
 #define MPQ_FLAG_ATTRIBUTES_NEW     0x00001000  /* Set when (attributes) invalidated by InvalidateInternalFiles */
 #define MPQ_FLAG_SIGNATURE_NONE     0x00002000  /* Set when no (signature) was found in InvalidateInternalFiles */
 #define MPQ_FLAG_SIGNATURE_NEW      0x00004000  /* Set when (signature) invalidated by InvalidateInternalFiles */
+#define MPQ_FLAG_FILENAME_UNIX      0x80000000  /* If set, filename isn't changed for hash functions */
 
 /* Values for TMPQArchive::dwSubType */
 #define MPQ_SUBTYPE_MPQ             0x00000000  /* The file is a MPQ file (Blizzard games) */
@@ -204,6 +205,7 @@
 #define MPQ_OPEN_CHECK_SECTOR_CRC   0x00100000  /* On files with MPQ_FILE_SECTOR_CRC, the CRC will be checked when reading file */
 #define MPQ_OPEN_PATCH              0x00200000  /* This archive is a patch MPQ. Used internally. */
 #define MPQ_OPEN_READ_ONLY          STREAM_FLAG_READ_ONLY
+#define MPQ_OPEN_UNIX               MPQ_FLAG_FILENAME_UNIX
 
 /* Flags for SFileCreateArchive */
 #define MPQ_CREATE_LISTFILE         0x00100000  /* Also add the (listfile) file */
@@ -214,6 +216,7 @@
 #define MPQ_CREATE_ARCHIVE_V3       0x02000000  /* Creates archive of version 3 */
 #define MPQ_CREATE_ARCHIVE_V4       0x03000000  /* Creates archive of version 4 */
 #define MPQ_CREATE_ARCHIVE_VMASK    0x0F000000  /* Mask for archive version */
+#define MPQ_CREATE_ARCHIVE_UNIX     MPQ_FLAG_FILENAME_UNIX
 
 #define FLAGS_TO_FORMAT_SHIFT               24  /* (MPQ_CREATE_ARCHIVE_V4 >> FLAGS_TO_FORMAT_SHIFT) => MPQ_FORMAT_VERSION_4 */
 
@@ -520,7 +523,6 @@ typedef struct _TMPQHeader
     unsigned char MD5_HetTable[MD5_DIGEST_SIZE];        /* MD5 of the HET table before decryption */
     unsigned char MD5_MpqHeader[MD5_DIGEST_SIZE];       /* MD5 of the MPQ header from signature to (including) MD5_HetTable */
 } TMPQHeader;
-#pragma pack(pop)
 
 /* Hash table entry. All files in the archive are searched by their hashes. */
 typedef struct _TMPQHash
@@ -558,6 +560,7 @@ typedef struct _TMPQHash
      */
     uint32_t dwBlockIndex;
 } TMPQHash;
+#pragma pack(pop)
 
 /* File description block contains informations about the file */
 typedef struct _TMPQBlock

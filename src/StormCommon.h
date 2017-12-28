@@ -240,6 +240,7 @@ extern unsigned char AsciiToUpperTable[256];
 #define MPQ_HASH_KEY2_MIX       0x400
 
 uint32_t HashString(const char * szFileName, uint32_t dwHashType);
+uint32_t HashStringCS(const char * szFileName, uint32_t dwHashType);
 uint32_t HashStringSlash(const char * szFileName, uint32_t dwHashType);
 uint32_t HashStringLower(const char * szFileName, uint32_t dwHashType);
 
@@ -249,6 +250,7 @@ uint32_t GetHashTableSizeForFileCount(uint32_t dwFileCount);
 
 int IsPseudoFileName(const char * szFileName, uint32_t * pdwFileIndex);
 uint64_t HashStringJenkins(const char * szFileName);
+uint64_t HashStringJenkinsCS(const char * szFileName);
 
 uint32_t GetDefaultSpecialFileFlags(uint32_t dwFileSize, uint16_t wFormatVersion);
 

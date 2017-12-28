@@ -80,7 +80,7 @@ int EXPORT_SYMBOL SFileCreateArchive(const char * szMpqName, uint32_t dwCreateFl
     memset(&CreateInfo, 0, sizeof(SFILE_CREATE_MPQ));
     CreateInfo.cbSize         = sizeof(SFILE_CREATE_MPQ);
     CreateInfo.dwMpqVersion   = (dwCreateFlags & MPQ_CREATE_ARCHIVE_VMASK) >> FLAGS_TO_FORMAT_SHIFT;
-    CreateInfo.dwStreamFlags  = STREAM_PROVIDER_FLAT | BASE_PROVIDER_FILE;
+    CreateInfo.dwStreamFlags  = STREAM_PROVIDER_FLAT | BASE_PROVIDER_FILE | (dwCreateFlags & MPQ_FLAG_FILENAME_UNIX);
     CreateInfo.dwFileFlags1   = (dwCreateFlags & MPQ_CREATE_LISTFILE)   ? MPQ_FILE_EXISTS : 0;
     CreateInfo.dwFileFlags2   = (dwCreateFlags & MPQ_CREATE_ATTRIBUTES) ? MPQ_FILE_EXISTS : 0;
     CreateInfo.dwFileFlags3   = (dwCreateFlags & MPQ_CREATE_SIGNATURE)  ? MPQ_FILE_EXISTS : 0;
@@ -158,6 +158,9 @@ int EXPORT_SYMBOL SFileCreateArchive2(const char * szMpqName, PSFILE_CREATE_MPQ 
         if(pStream == NULL)
             return 0;
     }
+    
+    /* Set the filename mode */
+    dwMpqFlags |= pCreateInfo->dwStreamFlags & MPQ_FLAG_FILENAME_UNIX;
 
     /* Increment the maximum amount of files to have space for (listfile) */
     if(pCreateInfo->dwMaxFileCount && pCreateInfo->dwFileFlags1)

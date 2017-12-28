@@ -1380,7 +1380,10 @@ static uint32_t GetFileIndex_Het(TMPQArchive * ha, const char * szFileName)
     assert(ha->pHetTable != NULL);
 
     /* Calculate 64-bit hash of the file name */
-    FileNameHash = (HashStringJenkins(szFileName) & pHetTable->AndMask64) | pHetTable->OrMask64;
+    if (ha->dwFlags & MPQ_FLAG_FILENAME_UNIX)
+        FileNameHash = (HashStringJenkinsCS(szFileName) & pHetTable->AndMask64) | pHetTable->OrMask64;
+    else
+        FileNameHash = (HashStringJenkins(szFileName) & pHetTable->AndMask64) | pHetTable->OrMask64;
 
     /* Split the file name hash into two parts:
      * NameHash1: The highest 8 bits of the name hash
@@ -1872,7 +1875,10 @@ void AllocateFileName(TMPQArchive * ha, TFileEntry * pFileEntry, const char * sz
         uint64_t AndMask64 = ha->pHetTable->AndMask64;
         uint64_t OrMask64 = ha->pHetTable->OrMask64;
 
-        pFileEntry->FileNameHash = (HashStringJenkins(szFileName) & AndMask64) | OrMask64;
+        if (ha->dwFlags & MPQ_FLAG_FILENAME_UNIX)
+            pFileEntry->FileNameHash = (HashStringJenkinsCS(szFileName) & AndMask64) | OrMask64;
+        else
+            pFileEntry->FileNameHash = (HashStringJenkins(szFileName) & AndMask64) | OrMask64;
     }
 }
 

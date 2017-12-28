@@ -219,9 +219,12 @@ int EXPORT_SYMBOL SFileOpenArchive(
         int bSearchComplete = 0;
 
         memset(ha, 0, sizeof(TMPQArchive));
-        ha->pfnHashString = HashString;
+        ha->pfnHashString = dwFlags & MPQ_OPEN_UNIX ? HashStringCS : HashString;
         ha->pStream = pStream;
         pStream = NULL;
+
+        /* Set filename mode */
+        ha->dwFlags |= (dwFlags & MPQ_OPEN_UNIX);
 
         /* Set the archive read only if the stream is read-only */
         FileStream_GetFlags(ha->pStream, &dwStreamFlags);
