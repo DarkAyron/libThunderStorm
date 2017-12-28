@@ -16,9 +16,6 @@
 #ifndef _CONFIG_H
 #define _CONFIG_H
 
-#define PLATFORM_LITTLE_ENDIAN
-#define PLATFORM_LINUX
-
 #if __LP64__
   #define PLATFORM_64BIT
 #else

@@ -15,8 +15,8 @@
 #ifndef _STORMCOMMON_H
 #define _STORMCOMMON_H
 
-#include "thunderStorm.h"
 #include "config.h"
+#include "thunderStorm.h"
 
 /* Definitions */
 #define EXPORT_SYMBOL __attribute__ ((visibility ("default")))

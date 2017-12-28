@@ -294,6 +294,21 @@
 #define LANG_NEUTRAL                      0x00  /* Neutral locale */
 #endif
 
+#define MPQ_LANG_C                LANG_NEUTRAL
+#define MPQ_LANG_CHINESE                 0x404
+#define MPQ_LANG_CZECH                   0x405
+#define MPQ_LANG_GERMAN                  0x407
+#define MPQ_LANG_ENGLISH                 0x409
+#define MPQ_LANG_SPANISH                 0x40a
+#define MPQ_LANG_FRENCH                  0x40c
+#define MPQ_LANG_ITALIAN                 0x410
+#define MPQ_LANG_JAPANESE                0x411
+#define MPQ_LANG_KOREAN                  0x412
+#define MPQ_LANG_POLISH                  0x415
+#define MPQ_LANG_PORTUGUESE              0x416
+#define MPQ_LANG_RUSSIAN                 0x419
+#define MPQ_LANG_BRITISH                 0x809
+
 /* Pointer to hashing function */
 typedef uint32_t (*HASH_STRING)(const char * szFileName, uint32_t dwHashType);
 
