@@ -70,9 +70,6 @@
 #define XSTRCMP strcmp
 #endif
 
-#ifndef XCLOCK
-#define XCLOCK   LibTomClock
-#endif
 #ifndef XCLOCKS_PER_SEC
 #define XCLOCKS_PER_SEC CLOCKS_PER_SEC
 #endif

@@ -31,9 +31,6 @@ LTC_EXPORT void LTC_CALL XFREE(void *p);
 LTC_EXPORT void LTC_CALL XQSORT(void *base, size_t nmemb, size_t size, int(*compar)(const void *, const void *));
 
 
-/* change the clock function too */
-LTC_EXPORT clock_t LTC_CALL XCLOCK(void);
-
 /* various other functions */
 LTC_EXPORT void * LTC_CALL XMEMCPY(void *dest, const void *src, size_t n);
 LTC_EXPORT int   LTC_CALL XMEMCMP(const void *s1, const void *s2, size_t n);

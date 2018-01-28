@@ -271,7 +271,7 @@
 #define ERROR_ACCESS_DENIED              EPERM
 #define ERROR_INVALID_HANDLE             EBADF
 #define ERROR_NOT_ENOUGH_MEMORY         ENOMEM
-#define ERROR_NOT_SUPPORTED            ENOTSUP
+#define ERROR_NOT_SUPPORTED            EOPNOTSUPP
 #define ERROR_INVALID_PARAMETER         EINVAL
 #define ERROR_DISK_FULL                 ENOSPC
 #define ERROR_ALREADY_EXISTS            EEXIST

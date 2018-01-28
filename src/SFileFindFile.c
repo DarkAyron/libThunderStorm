@@ -354,7 +354,7 @@ static void FreeMPQSearch(TMPQSearch ** hs)
     {
         if((*hs)->pSearchTable != NULL)
             STORM_FREE((*hs)->pSearchTable);
-        STORM_FREE(hs);
+        STORM_FREE(*hs);
         *hs = NULL;
     }
 }

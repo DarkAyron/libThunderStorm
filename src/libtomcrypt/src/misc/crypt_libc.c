@@ -32,11 +32,6 @@ void LibTomFree(void * p)
     free(p);
 }
 
-clock_t LibTomClock(void)
-{
-    return clock();
-}
-
 void LibTomQsort(void *base, size_t nmemb, size_t size, int(*compar)(const void *, const void *))
 {
     qsort(base, nmemb, size, compar);

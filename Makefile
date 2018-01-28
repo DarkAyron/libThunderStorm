@@ -23,12 +23,12 @@ C++ = g++
 CC = gcc
 AS = as
 AR = ar
-DFLAGS = -D_7ZIP_ST -DPLATFORM_LITTLE_ENDIAN -DPLATFORM_LINUX
+DFLAGS = -D_7ZIP_ST -DXLTC_NO_WCHAR -DPLATFORM_LITTLE_ENDIAN -DPLATFORM_LINUX
 OFLAGS =
 #LFLAGS = -m32
 LFLAGS = -m64
 CFLAGS = -fPIC -std=gnu89 -g -fvisibility=internal
-WFLAGS = -Wall -Werror=implicit-int -Werror=implicit-function-declaration -Wno-unused-variable -Wno-unused-function -Wno-unused-but-set-variable -Werror
+WFLAGS = -Wall -Werror=implicit-int -Werror=implicit-function-declaration -Wno-unused-variable -Wno-unused-function -Wno-unused-but-set-variable -Wno-maybe-uninitialized -Werror
 CFLAGS += $(OFLAGS) $(DFLAGS) $(WFLAGS)
 
 #ARCH = -m32
@@ -305,6 +305,8 @@ SLIB = libThunderStorm.a
 
 so: $(SO)
 
+static: $(SLIB)
+
 libs: $(LIBS)
 
 $(SO): $(OBJC_TC) $(OBJC_TM) $(OBJC_PK) $(OBJC_ZLIB) $(OBJC_LZMA) $(OBJC_BZ2) $(LIBS) $(OBJC)
@@ -340,7 +342,7 @@ src/bzip2/bzip2.a: $(OBJC_BZ2)
 	@$(AR) cr src/bzip2/bzip2.a $(OBJC_BZ2)
 
 clean:
-	rm -f $(OVJS) $(OBJC) $(OBJC_TC) $(OBJC_TM) $(OBJC_PK) $(OBJC_ZLIB) $(OBJC_LZMA) $(OBJC_BZ2) $(LIBS) $(SO) $(OVL) libThunderstorm
+	rm -f $(OVJS) $(OBJC) $(OBJC_TC) $(OBJC_TM) $(OBJC_PK) $(OBJC_ZLIB) $(OBJC_LZMA) $(OBJC_BZ2) $(LIBS) $(SO) $(SLIB) $(OVL) libThunderstorm
 
 $(OBJS): %.o: %.s
 	$(AS) -o $@ $(ASFLAGS) $<
