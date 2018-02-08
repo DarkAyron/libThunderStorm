@@ -100,6 +100,7 @@ static int BaseFile_Open(TFileStream_t * pStream, const char * szFileName, uint3
     handle = open(szFileName, oflag);
     if(handle == -1)
     {
+        pStream->Base.File.hFile = handle;
         nLastError = errno;
         return 0;
     }
